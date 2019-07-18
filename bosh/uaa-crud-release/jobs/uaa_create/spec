@@ -1,0 +1,49 @@
+---
+name: uaa_create
+
+templates:
+  pre-start.erb: bin/pre-start
+
+consumes:
+- name: credhub
+  type: credhub
+  optional: true
+
+packages:
+  - uaa_crud_pkg
+
+properties:
+  uaacrud.endpoint:
+    description: UAA Endpoint
+  uaacrud.admin_identity:
+    description: UAA Admin Username
+  uaacrud.admin_secret:
+    description: UAA Admin Client Secret
+  uaacrud.target_client_identity:
+    description: Target Client Identity
+  uaacrud.target_client_secret:
+    description: Target Client Secret
+  uaacrud.client_grant_types:
+    description: A comma separated list of Authorization Grant Types
+    default: client_credentials
+  uaacrud.client_scopes:
+    description: A comma separated list of UAA Scopes
+    default: uaa.none
+  uaacrud.client_authorities:
+    description: A comma separated list of UAA Authorities"
+  uaacrud.token_validity:
+    description: Client token validity period in seconds
+    default: 1800
+  credhub.identity:
+    description: Credhub Client Identity
+  credhub.secret:
+    description: Credhub Client Password
+  credhub.endpoint:
+    description: Credhub Endpoint
+  credhub.credential_path:
+    description: Credhub Credential Path
+  credhub.permissions:
+    description: CredHub permissions to add to new UAA cc
+  credhub.port:
+    description: CredHub Endpoint Port
+    default: 8844

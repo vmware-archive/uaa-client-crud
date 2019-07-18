@@ -1,0 +1,34 @@
+---
+name: uaa_delete
+
+templates:
+  uaa_delete.erb: bin/run
+
+consumes:
+- name: credhub
+  type: credhub
+  optional: true
+
+packages:
+  - uaa_crud_pkg
+
+properties:
+  uaacrud.endpoint:
+    description: UAA Endpoint
+  uaacrud.admin_identity:
+    description: UAA Admin Username
+  uaacrud.admin_secret:
+    description: UAA Admin Client Secret
+  uaacrud.target_client_identity:
+    description: Target Client Identity
+  credhub.identity:
+    description: Credhub Client Identity
+  credhub.secret:
+    description: Credhub Client Password
+  credhub.endpoint:
+    description: Credhub Endpoint
+  credhub.credential_path:
+    description: Credhub Credential Path
+  credhub.port:
+    description: CredHub Endpoint Port
+    default: 8844

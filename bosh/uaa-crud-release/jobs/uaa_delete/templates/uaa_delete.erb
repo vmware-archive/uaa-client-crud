@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -e
+
+LOG_DIR="/var/vcap/sys/log/uaa_delete"
+
+mkdir -p "$LOG_DIR"
+
+chown -R vcap:vcap "$LOG_DIR"
+
+export CREDHUB_CLIENT_ID=<%= p("credhub.identity", "") %>
+export CREDHUB_CLIENT_SECRET=<%= p("credhub.secret", "") %>
+export CREDHUB_CRED_PATH=<%= p("credhub.credential_path", "") %>
+
+<% if_link("credhub") do |cred_link| %>
+export CREDHUB_URL=<%= cred_link.instances[0].address %>
+<% end %>
+
+if [ "$CREDHUB_URL" == "" ]; then
+<% if p("credhub.endpoint", "") != "" %>
+export CREDHUB_URL=<%= p("credhub.endpoint") %>
+<% else %>
+echo "CredHub not configured" 
+<% end %>
+fi
+
+if [ "$CREDHUB_URL" != "" ]; then
+export CREDHUB_URL=$CREDHUB_URL:<%= p("credhub.port") %>
+echo "CredHub URL: $CREDHUB_URL"
+fi
+
+/var/vcap/jobs/uaa_delete/packages/uaa_crud_pkg/uaa-crud.linux delete --uaa-endpoint <%= p("uaacrud.endpoint") %> \
+  --admin-identity <%= p("uaacrud.admin_identity") %> \
+  --admin-secret <%= p("uaacrud.admin_secret") %> \
+  --target-client-identity <%= p("uaacrud.target_client_identity") %> -v \
+   1>> "$LOG_DIR/uaa_delete.stdout.log" \
+   2>> "$LOG_DIR/uaa_delete.stderr.log"
