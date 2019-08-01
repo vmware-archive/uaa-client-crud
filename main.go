@@ -1,116 +1,48 @@
+// Copyright (c) 2019-Present Pivotal Software, Inc. All Rights Reserved.
+//
+// This program and the accompanying materials are made available under the terms of the under the Apache License,
+// Version 2.0 (the "License”); you may not use this file except in compliance with the License. You may
+// obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed under the
+// License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+// express or implied. See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
-	"code.cloudfoundry.org/credhub-cli/credhub"
-	"code.cloudfoundry.org/credhub-cli/credhub/auth"
 	"code.cloudfoundry.org/lager"
-	"fmt"
-	"github.com/cloudfoundry-community/go-uaa"
+	uaacmd "github.com/cf-platform-eng/uaa-client-crud/pkg/cmd"
 	"github.com/spf13/cobra"
 	"os"
 )
 
-type uaaClientConfig struct {
-	uaaEndpoint         string
-	adminClientIdentity string
-	adminClientPwd      string
-	clientIndentity     string
-	clientPwd           string
-}
-
-type uaaClient struct {
-	config uaaClientConfig
+func main() {
+	cmd := newRootCmd(os.Args[1:])
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
 
 func newRootCmd(args []string) *cobra.Command {
-	root := &cobra.Command{
-		Use:   "uaaClientThing",
-		Short: "Our Short String",
+	command := &cobra.Command{
+		Use:   "uaaclient",
+		Short: "uaa-client-crud",
 	}
 
-	flags := root.PersistentFlags()
-	//out := root.OutOrStdout()
-
-	client := &uaaClient{}
-
-	uaaCreateClientCmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a new client in UAA",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return client.uaaCreate()
-		},
-	}
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.config.uaaEndpoint, "uaa-endpoint", "e", "", "UAA Endpoint")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "uaa-endpoint")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.config.adminClientIdentity, "admin-identity", "i", "", "Admin Username")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "admin-identity")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.config.adminClientPwd, "admin-pwd", "p", "", "Admin Password")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "admin-pwd")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.config.clientIndentity, "client-identity", "c", "", "New Client Identity")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "client-identity")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.config.clientPwd, "client-pwd", "w", "", "New Client Password")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "client-pwd")
-
-	root.AddCommand(uaaCreateClientCmd)
+	out := command.OutOrStdout()
+	logger := lager.NewLogger("test")
+	logger.RegisterSink(lager.NewWriterSink(out, lager.INFO))
+	flags := command.PersistentFlags()
+	command.AddCommand(
+		uaacmd.NewCreateClientCmd(logger),
+		uaacmd.NewDeleteClientCmd(logger),
+	)
 
 	flags.Parse(args)
 
-	return root
-}
-
-func (cc *uaaClient) uaaCreate() error {
-
-	fmt.Print("the endpoint is ")
-	fmt.Println(cc.config.uaaEndpoint)
-	logger := lager.NewLogger("test")
-
-	// construct the API, and validate it
-	api := uaa.New(cc.config.uaaEndpoint, "").WithClientCredentials(cc.config.adminClientIdentity, cc.config.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
-	err := api.Validate()
-	if err != nil {
-		logger.Info(err.Error())
-	}
-
-	client := uaa.Client{
-		ClientID:             cc.config.clientIndentity,
-		ClientSecret:         cc.config.clientPwd,
-		AccessTokenValidity:  1209600,
-		AuthorizedGrantTypes: []string{"client_credentials", "refresh_token"},
-		Scope:                []string{"openid", "oauth.approvals", "credhub.read", "credhub.write"},
-		Authorities:          []string{"oauth.login", "credhub.read", "credhub.write"},
-	}
-
-	newClient, err := api.CreateClient(client)
-
-	logger.Info(newClient.DisplayName)
-
-	//api.ChangeClientSecret("credhub_admin_client", "iFB7oFXyRI1Yp3sHd_5RZ7WLDZHv2UX3")
-	credHubClient, err := api.GetClient("credhub_admin_client")
-
-	chAdmin, err := credhub.New("https://credhub-proxy.apps.brea.cf-app.com",
-		credhub.SkipTLSValidation(true),
-		credhub.Auth(auth.UaaClientCredentials("credhub_admin_client", credHubClient.ClientSecret)),
-		credhub.AuthURL("https://uaa.sys.brea.cf-app.com"),
-	)
-
-	_, err = chAdmin.AddPermission(
-		"/*", "uaa-client:"+cc.config.clientIndentity,
-		[]string{"read", "write", "delete", "read_acl", "write_acl"},
-	)
-
-	return nil
-}
-
-func main() {
-	fmt.Println("Hello")
-	command := newRootCmd(os.Args[1:])
-	err := command.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	return command
 }
