@@ -14,35 +14,33 @@
 package main
 
 import (
-	"code.cloudfoundry.org/lager"
-	uaacmd "github.com/cf-platform-eng/uaa-client-crud/pkg/cmd"
+	"github.com/cf-platform-eng/uaa-client-crud/pkg/cmd"
 	"github.com/spf13/cobra"
 	"os"
 )
 
-func main() {
-	cmd := newRootCmd(os.Args[1:])
-	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
-	}
-}
-
 func newRootCmd(args []string) *cobra.Command {
-	command := &cobra.Command{
-		Use:   "uaaclient",
-		Short: "uaa-client-crud",
+	root := &cobra.Command{
+		Use:     "uaaclient",
+		Short:   "uaa-client-crud",
+		Version: "0.1.0",
 	}
 
-	out := command.OutOrStdout()
-	logger := lager.NewLogger("test")
-	logger.RegisterSink(lager.NewWriterSink(out, lager.INFO))
-	flags := command.PersistentFlags()
-	command.AddCommand(
-		uaacmd.NewCreateClientCmd(logger),
-		uaacmd.NewDeleteClientCmd(logger),
+	flags := root.PersistentFlags()
+	out := root.OutOrStdout()
+	root.AddCommand(
+		cmd.NewCreateClientCmd(out),
+		cmd.NewDeleteClientCmd(out),
 	)
 
 	flags.Parse(args)
 
-	return command
+	return root
+}
+
+func main() {
+	rootCmd := newRootCmd(os.Args[1:])
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

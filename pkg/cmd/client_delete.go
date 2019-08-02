@@ -3,94 +3,96 @@ package cmd
 import (
 	"code.cloudfoundry.org/credhub-cli/credhub"
 	"code.cloudfoundry.org/credhub-cli/credhub/auth"
-	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
 	"strings"
 )
 
-func NewDeleteClientCmd(logger lager.Logger) *cobra.Command {
-	client := &uaaClient{}
-	client.logger = logger
-	uaaCreateClientCmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a new client in UAA",
+type clientDeleteCmd struct {
+	baseCmd
+}
+
+func NewDeleteClientCmd(out io.Writer) *cobra.Command {
+	client := &clientDeleteCmd{
+		baseCmd: newBaseCmd(out),
+	}
+
+	cd := &clientDeleteCmd{}
+	cmd := &cobra.Command{
+		Use:    "create",
+		Short:  "Create a new client in UAA",
+		PreRun: cd.PreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
-			return client.uaaDelete()
+			return cd.run()
 		},
 	}
 
-	uaaCreateClientCmd.Flags().StringVarP(&client.uaaConfig.endpoint, "uaa-endpoint", "e", "", "UAA Endpoint")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "uaa-endpoint")
+	cd.addCommonFlags(cmd)
+	cmd.Flags().StringVarP(&client.uaaConfig.endpoint, "uaa-endpoint", "e", "", "UAA Endpoint")
+	cobra.MarkFlagRequired(cmd.Flags(), "uaa-endpoint")
+	cmd.Flags().StringVarP(&client.uaaConfig.adminClientIdentity, "admin-identity", "i", "", "Admin Username")
+	cobra.MarkFlagRequired(cmd.Flags(), "admin-identity")
+	cmd.Flags().StringVarP(&client.uaaConfig.adminClientPwd, "admin-pwd", "p", "", "Admin Password")
+	cobra.MarkFlagRequired(cmd.Flags(), "admin-pwd")
+	cmd.Flags().StringVarP(&client.newClientConfig.clientIndentity, "client-identity", "c", "", "New Client Identity")
+	cobra.MarkFlagRequired(cmd.Flags(), "client-identity")
+	cmd.Flags().StringVarP(&client.newClientConfig.clientPwd, "client-pwd", "w", "", "New Client Password")
+	cobra.MarkFlagRequired(cmd.Flags(), "client-pwd")
+	cmd.Flags().StringSliceVarP(&client.newClientConfig.clientGrantTypes, "auth-grant-types", "g", []string{"client_credentials"}, "A comma separated list of Authorization Grant Types")
+	cmd.Flags().StringSliceVarP(&client.newClientConfig.clientScopes, "scopes", "s", []string{"uaa.none"}, "A comma separated list of UAA Scopes")
+	cmd.Flags().StringSliceVarP(&client.newClientConfig.clientAuthorities, "authorities", "a", []string{""}, "A comma separated list of UAA Authorities")
+	cobra.MarkFlagRequired(cmd.Flags(), "authorities")
+	cmd.Flags().Int64VarP(&client.newClientConfig.clientTokenValidity, "token-validity", "t", 1800, "Client token validity period in seconds")
+	cmd.Flags().StringVar(&client.credhubConfig.clientID, "credhub-client-identity", os.Getenv("CREDHUB_CLIENT_ID"), "Credhub Client Identity if granting new client CredHub access")
+	cmd.Flags().StringVar(&client.credhubConfig.endpoint, "credhub-endpoint", os.Getenv("CREDHUB_URL"), "CredHub endpoint URL")
+	cmd.Flags().StringVar(&client.credhubConfig.credPath, "credential-path", os.Getenv("CREDHUB_CRED_PATH"), "CredHub Credential Path")
+	cmd.Flags().StringSliceVar(&client.credhubConfig.credPermissions, "credhub-permissions", strings.Split(os.Getenv("CREDHUB_PERMISSIONS"), ","), "CredHub permissions to add to new UAA client")
 
-	uaaCreateClientCmd.Flags().StringVarP(&client.uaaConfig.adminClientIdentity, "admin-identity", "i", "", "Admin Username")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "admin-identity")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.uaaConfig.adminClientPwd, "admin-pwd", "p", "", "Admin Password")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "admin-pwd")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.newClientConfig.clientIndentity, "client-identity", "c", "", "New Client Identity")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "client-identity")
-
-	uaaCreateClientCmd.Flags().StringVarP(&client.newClientConfig.clientPwd, "client-pwd", "w", "", "New Client Password")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "client-pwd")
-
-	uaaCreateClientCmd.Flags().StringSliceVarP(&client.newClientConfig.clientGrantTypes, "auth-grant-types", "g", []string{"client_credentials"}, "A comma separated list of Authorization Grant Types")
-
-	uaaCreateClientCmd.Flags().StringSliceVarP(&client.newClientConfig.clientScopes, "scopes", "s", []string{"uaa.none"}, "A comma separated list of UAA Scopes")
-
-	uaaCreateClientCmd.Flags().StringSliceVarP(&client.newClientConfig.clientAuthorities, "authorities", "a", []string{""}, "A comma separated list of UAA Authorities")
-	cobra.MarkFlagRequired(uaaCreateClientCmd.Flags(), "authorities")
-
-	uaaCreateClientCmd.Flags().Int64VarP(&client.newClientConfig.clientTokenValidity, "token-validity", "t", 1800, "Client token validity period in seconds")
-
-	uaaCreateClientCmd.Flags().StringVar(&client.credhubConfig.clientID, "credhub-client-identity", os.Getenv("CREDHUB_CLIENT_ID"), "Credhub Client Identity if granting new client Credhub access")
-
-	uaaCreateClientCmd.Flags().StringVar(&client.credhubConfig.endpoint, "credhub-endpoint", os.Getenv("CREDHUB_URL"), "Credhub endpoint URL")
-
-	uaaCreateClientCmd.Flags().StringVar(&client.credhubConfig.credPath, "credential-path", os.Getenv("CREDHUB_CRED_PATH"), "Credhub Credential Path")
-
-	uaaCreateClientCmd.Flags().StringSliceVar(&client.credhubConfig.credPermissions, "credhub-permissions", strings.Split(os.Getenv("CREDHUB_PERMISSIONS"), ","), "Credhub permissions to add to new UAA client")
-
-	return uaaCreateClientCmd
+	return cmd
 }
 
-func (cc *uaaClient) uaaDelete() error {
+func (cd *clientDeleteCmd) run() error {
 
 	// construct the API, and validate it
-	api := uaa.New(cc.uaaConfig.endpoint, "").WithClientCredentials(cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
+	api := uaa.New(cd.uaaConfig.endpoint, "").WithClientCredentials(cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
 	err := api.Validate()
 	if err != nil {
-		cc.logger.Info(err.Error())
+		cd.log.Error("", err)
 	}
 
-	_, err = api.DeleteClient(cc.newClientConfig.clientIndentity)
+	_, err = api.DeleteClient(cd.newClientConfig.clientIndentity)
 
 	if err != nil {
-		cc.logger.Info("Failed to delete UAA Client: " + err.Error())
+		cd.log.Error("Failed to delete UAA Client", err)
 		return err
 	}
 
-	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
-		credHubClient, err := api.GetClient(cc.credhubConfig.clientID)
-		cc.logger.Info(credHubClient.ClientID + " secret:" + credHubClient.ClientSecret)
-		err = credHubClient.Validate()
+	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPermissions != nil && cd.credhubConfig.credPath != "" {
+
+		chAdmin, err := credhub.New(cd.credhubConfig.endpoint,
+			credhub.SkipTLSValidation(true),
+			credhub.Auth(auth.UaaClientCredentials(cd.credhubConfig.clientID, cd.credhubConfig.clientPwd)),
+			credhub.AuthURL(cd.uaaConfig.endpoint),
+		)
+
 		if err != nil {
-			cc.logger.Info(err.Error())
+			cd.log.Error("Failed to connect to CredHub", err)
 			return err
 		}
 
-		chAdmin, err := credhub.New(cc.credhubConfig.endpoint,
-			credhub.SkipTLSValidation(true),
-			credhub.Auth(auth.UaaClientCredentials(cc.credhubConfig.clientID, "iFB7oFXyRI1Yp3sHd_5RZ7WLDZHv2UX3")),
-			credhub.AuthURL(cc.uaaConfig.endpoint),
-		)
-
-		permission, err := chAdmin.GetPermissionByPathActor(cc.credhubConfig.credPath, "uaa-client:"+cc.newClientConfig.clientIndentity)
-
+		permission, err := chAdmin.GetPermissionByPathActor(cd.credhubConfig.credPath, "uaa-client:"+cd.newClientConfig.clientIndentity)
+		if err != nil {
+			cd.log.Error("Failed to get Permission object", err)
+			return err
+		}
 		_, err = chAdmin.DeletePermission(permission.UUID)
+		if err != nil {
+			cd.log.Error("Failed to delete Permission object", err)
+			return err
+		}
 
 	}
 	return nil
