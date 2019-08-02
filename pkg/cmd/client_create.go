@@ -12,11 +12,21 @@ import (
 
 type clientCreateCmd struct {
 	baseCmd
+	newClientConfig uaaClientConfig
+}
+
+type uaaClientConfig struct {
+	clientPwd           string
+	clientGrantTypes    []string
+	clientScopes        []string
+	clientAuthorities   []string
+	clientTokenValidity int64
 }
 
 func NewCreateClientCmd(out io.Writer) *cobra.Command {
 	cc := &clientCreateCmd{
 		newBaseCmd(out),
+		uaaClientConfig{},
 	}
 
 	cmd := &cobra.Command{
@@ -31,14 +41,6 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 
 	cc.addCommonFlags(cmd)
 
-	cmd.Flags().StringVarP(&cc.uaaConfig.endpoint, "uaa-endpoint", "e", "", "UAA Endpoint")
-	cobra.MarkFlagRequired(cmd.Flags(), "uaa-endpoint")
-	cmd.Flags().StringVarP(&cc.uaaConfig.adminClientIdentity, "admin-identity", "i", "", "Admin Username")
-	cobra.MarkFlagRequired(cmd.Flags(), "admin-identity")
-	cmd.Flags().StringVarP(&cc.uaaConfig.adminClientPwd, "admin-pwd", "p", "", "Admin Password")
-	cobra.MarkFlagRequired(cmd.Flags(), "admin-pwd")
-	cmd.Flags().StringVarP(&cc.newClientConfig.clientIndentity, "cc-identity", "c", "", "New Client Identity")
-	cobra.MarkFlagRequired(cmd.Flags(), "cc-identity")
 	cmd.Flags().StringVarP(&cc.newClientConfig.clientPwd, "cc-pwd", "w", "", "New Client Password")
 	cobra.MarkFlagRequired(cmd.Flags(), "cc-pwd")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientGrantTypes, "auth-grant-types", "g", []string{"client_credentials"}, "A comma separated list of Authorization Grant Types")
@@ -46,10 +48,6 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientAuthorities, "authorities", "a", []string{""}, "A comma separated list of UAA Authorities")
 	cobra.MarkFlagRequired(cmd.Flags(), "authorities")
 	cmd.Flags().Int64VarP(&cc.newClientConfig.clientTokenValidity, "token-validity", "t", 1800, "Client token validity period in seconds")
-	cmd.Flags().StringVar(&cc.credhubConfig.clientID, "credhub-cc-identity", os.Getenv("CREDHUB_CLIENT_ID"), "CredHub Client Identity if granting new cc Credhub access")
-	cmd.Flags().StringVar(&cc.credhubConfig.clientPwd, "credhub-cc-password", os.Getenv("CREDHUB_CLIENT_PASSWORD"), "Credhub Client Password if granting the new cc CredHub access")
-	cmd.Flags().StringVar(&cc.credhubConfig.endpoint, "credhub-endpoint", os.Getenv("CREDHUB_URL"), "CredHub endpoint URL")
-	cmd.Flags().StringVar(&cc.credhubConfig.credPath, "credential-path", os.Getenv("CREDHUB_CRED_PATH"), "CredHub Credential Path")
 	cmd.Flags().StringSliceVar(&cc.credhubConfig.credPermissions, "credhub-permissions", strings.Split(os.Getenv("CREDHUB_PERMISSIONS"), ","), "CredHub permissions to add to new UAA cc")
 
 	return cmd
@@ -65,7 +63,7 @@ func (cc *clientCreateCmd) run() error {
 	}
 
 	client := uaa.Client{
-		ClientID:             cc.newClientConfig.clientIndentity,
+		ClientID:             cc.targetClientIdentity,
 		ClientSecret:         cc.newClientConfig.clientPwd,
 		AccessTokenValidity:  cc.newClientConfig.clientTokenValidity,
 		AuthorizedGrantTypes: cc.newClientConfig.clientGrantTypes,
@@ -95,7 +93,7 @@ func (cc *clientCreateCmd) run() error {
 		}
 
 		_, err = chAdmin.AddPermission(
-			cc.credhubConfig.credPath, "uaa-client:"+cc.newClientConfig.clientIndentity,
+			cc.credhubConfig.credPath, "uaa-client:"+cc.targetClientIdentity,
 			cc.credhubConfig.credPermissions,
 		)
 
