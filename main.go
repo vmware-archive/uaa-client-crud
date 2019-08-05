@@ -14,9 +14,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/cmd"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func newRootCmd(args []string) *cobra.Command {

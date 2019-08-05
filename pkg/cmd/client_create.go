@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"io"
+	"os"
+	"strings"
+
 	"code.cloudfoundry.org/credhub-cli/credhub"
 	"code.cloudfoundry.org/credhub-cli/credhub/auth"
 	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
-	"io"
-	"os"
-	"strings"
 )
 
 type clientCreateCmd struct {

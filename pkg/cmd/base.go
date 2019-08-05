@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"code.cloudfoundry.org/lager"
-	"github.com/spf13/cobra"
 	"io"
 	"os"
+
+	"code.cloudfoundry.org/lager"
+	"github.com/spf13/cobra"
 )
 
 type uaaConfig struct {
