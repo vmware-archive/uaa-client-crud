@@ -42,16 +42,16 @@ func newBaseCmd(out io.Writer) baseCmd {
 func (b *baseCmd) addCommonFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&b.verbose, "verbose", "v", false, "verbose logging")
 	cmd.Flags().StringVarP(&b.uaaConfig.endpoint, "uaa-endpoint", "e", "", "UAA Endpoint")
-	cobra.MarkFlagRequired(cmd.Flags(), "uaa-endpoint")
-	cmd.Flags().StringVarP(&b.uaaConfig.adminClientIdentity, "admin-identity", "i", "", "Admin Username")
+	cmd.MarkFlagRequired("uaa-endpoint")
+	cmd.Flags().StringVarP(&b.uaaConfig.adminClientIdentity, "admin-identity", "u", "", "UAA Admin Username")
 	cobra.MarkFlagRequired(cmd.Flags(), "admin-identity")
-	cmd.Flags().StringVarP(&b.uaaConfig.adminClientPwd, "admin-pwd", "p", "", "Admin Password")
+	cmd.Flags().StringVarP(&b.uaaConfig.adminClientPwd, "admin-pwd", "p", "", "UAA Admin Password")
 	cobra.MarkFlagRequired(cmd.Flags(), "admin-pwd")
-	cmd.Flags().StringVarP(&b.targetClientIdentity, "cd-identity", "c", "", "New Client Identity")
-	cobra.MarkFlagRequired(cmd.Flags(), "cd-identity")
+	cmd.Flags().StringVarP(&b.targetClientIdentity, "target-client-identity", "c", "", "Target Client Identity")
+	cobra.MarkFlagRequired(cmd.Flags(), "target-client-identity")
 
-	cmd.Flags().StringVar(&b.credhubConfig.clientID, "credhub-cd-identity", os.Getenv("CREDHUB_CLIENT_ID"), "Credhub Client Identity if granting new cd CredHub access")
-	cmd.Flags().StringVar(&b.credhubConfig.clientPwd, "credhub-cc-password", os.Getenv("CREDHUB_CLIENT_PASSWORD"), "Credhub Client Password if granting the new cc CredHub access")
+	cmd.Flags().StringVar(&b.credhubConfig.clientID, "credhub-identity", os.Getenv("CREDHUB_CLIENT_ID"), "Credhub Client Identity if granting or revoking CredHub access")
+	cmd.Flags().StringVar(&b.credhubConfig.clientPwd, "credhub-password", os.Getenv("CREDHUB_CLIENT_PASSWORD"), "Credhub Client Password if granting or revoking CredHub access")
 	cmd.Flags().StringVar(&b.credhubConfig.endpoint, "credhub-endpoint", os.Getenv("CREDHUB_URL"), "CredHub endpoint URL")
 	cmd.Flags().StringVar(&b.credhubConfig.credPath, "credential-path", os.Getenv("CREDHUB_CRED_PATH"), "CredHub Credential Path")
 

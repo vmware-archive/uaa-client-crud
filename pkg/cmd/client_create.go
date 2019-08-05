@@ -31,7 +31,7 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:    "create",
-		Short:  "Create a new cc in UAA",
+		Short:  "Create a new client in UAA",
 		PreRun: cc.PreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
@@ -41,12 +41,12 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 
 	cc.addCommonFlags(cmd)
 
-	cmd.Flags().StringVarP(&cc.newClientConfig.clientPwd, "cc-pwd", "w", "", "New Client Password")
-	cobra.MarkFlagRequired(cmd.Flags(), "cc-pwd")
+	cmd.Flags().StringVarP(&cc.newClientConfig.clientPwd, "target-client-pwd", "w", "", "Target Client Password")
+	cmd.MarkFlagRequired("target-client-pwd")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientGrantTypes, "auth-grant-types", "g", []string{"client_credentials"}, "A comma separated list of Authorization Grant Types")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientScopes, "scopes", "s", []string{"uaa.none"}, "A comma separated list of UAA Scopes")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientAuthorities, "authorities", "a", []string{""}, "A comma separated list of UAA Authorities")
-	cobra.MarkFlagRequired(cmd.Flags(), "authorities")
+	cmd.MarkFlagRequired("authorities")
 	cmd.Flags().Int64VarP(&cc.newClientConfig.clientTokenValidity, "token-validity", "t", 1800, "Client token validity period in seconds")
 	cmd.Flags().StringSliceVar(&cc.credhubConfig.credPermissions, "credhub-permissions", strings.Split(os.Getenv("CREDHUB_PERMISSIONS"), ","), "CredHub permissions to add to new UAA cc")
 

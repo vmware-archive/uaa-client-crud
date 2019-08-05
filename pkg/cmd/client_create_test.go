@@ -21,18 +21,32 @@ var _ = Describe("Client create", func() {
 		c.Flags().Set("uaa-endpoint", "bob")
 		c.Flags().Set("admin-identity", "monkey123")
 		c.Flags().Set("admin-pwd", "bob")
-		c.Flags().Set("cd-identity", "monkey123")
-		c.Flags().Set("credhub-cd-identity", "bob")
-		c.Flags().Set("credhub-cc-password", "monkey123")
-		c.Flags().Set("credhub-endpoint", "bob")
-		c.Flags().Set("credential-path", "monkey123")
+		c.Flags().Set("target-client-identity", "monkey123")
+		c.Flags().Set("target-client-password", "p@ssw0rD")
+		c.Flags().Set("authorities","auth1, auth2")
 	})
 
-	It("Fail if missing required flags", func() {
+	It("happy path", func() {
+		c.Flags().Set("credhub-identity", "bob")
+		c.Flags().Set("credhub-password", "monkey123")
+		c.Flags().Set("credhub-endpoint", "bob")
+		c.Flags().Set("credential-path", "monkey123")
 		c.PreRun(c, []string{})
 		err := c.RunE(c, []string{})
 		out.Flush()
 
+		Expect(c.)
+		Expect(err).To(BeNil())
+	})
+
+	It("setting env vars are passed to clientCreate", func() {
+		c.Flags().Set("credhub-identity", "bob")
+		c.Flags().Set("credhub-password", "monkey123")
+		c.Flags().Set("credhub-endpoint", "bob")
+		c.Flags().Set("credential-path", "monkey123")
+		c.PreRun(c, []string{})
+		err := c.RunE(c, []string{})
+		out.Flush()
 		Expect(err).To(BeNil())
 	})
 })

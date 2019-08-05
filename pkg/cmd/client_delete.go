@@ -19,7 +19,7 @@ func NewDeleteClientCmd(out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:    "delete",
-		Short:  "Create a new cd in UAA",
+		Short:  "Delete a client in UAA",
 		PreRun: cd.PreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
