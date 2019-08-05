@@ -4,7 +4,8 @@ name: uaa-crud
 templates:
   pre-start.erb: bin/pre-start
 
-packages: []
+packages:
+  - uaa-crud_pkg
 
 properties:
   uaacrud.endpoint:

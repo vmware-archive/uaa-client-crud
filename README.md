@@ -15,3 +15,11 @@ This is a cli that encapsulates the creation and deletion of a UAA client.
 Once working, wrap in a bosh release and run it from a
 post-deploy errand (https://bosh.io/docs/job-lifecycle/)
 
+### Developing
+
+Add this project to your gopath with: 
+`go get -u github.com/cf-platform-eng/uaa-client-crud` 
+
+Enable gomod integration in Goland
+
+You may need to run `GO111MODULE=on go mod vendor` 

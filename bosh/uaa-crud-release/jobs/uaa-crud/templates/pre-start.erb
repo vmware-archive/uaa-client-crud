@@ -2,31 +2,25 @@
 set -x
 
 LOG_DIR="/var/vcap/sys/log/uaa-crud"
-RUN_DIR="/var/vcap/sys/run/uaa-crud"
 
-mkdir -p "$LOG_DIR" "$RUN_DIR"
+mkdir -p "$LOG_DIR"
 
-chown -R vcap:vcap "$LOG_DIR" "$RUN_DIR"
+chown -R vcap:vcap "$LOG_DIR"
 
-export MUSEUM_USERNAME=<%= p("chartmuseum.username", "admin") %>
-export MUSEUM_PASSWORD=<%= Shellwords.escape p("chartmuseum.password") %>
-export PORT=<%= p("chartmuseum.port", "8080") %>
+export CREDHUB_CLIENT_ID=<%= p("credhub.identity") %>
+export CREDHUB_CLIENT_PASSWORD=<%= p("credhub.password") %>
+export CREDHUB_URL=<%= p("credhub.endpoint") %>
+export CREDHUB_CRED_PATH=<%= p("credhub.credential_path") %>
+export CREDHUB_PERMISSIONS=<%= p("credhub.permissions") %>
 
-export AWS_ACCESS_KEY_ID=<%= p('chartmuseum.s3.access_key_id') %>
-export AWS_SECRET_ACCESS_KEY=<%= Shellwords.escape p('chartmuseum.s3.secret_access_key') %>
-export STORAGE=amazon
-export STORAGE_AMAZON_BUCKET=<%= p("chartmuseum.s3.bucket_name") %>
-export STORAGE_AMAZON_PREFIX=charts
-export STORAGE_AMAZON_ENDPOINT='<%= p('chartmuseum.s3.endpoint') %>'
-
-
-/sbin/start-stop-daemon \
-  --pidfile "$PIDFILE" \
-  --make-pidfile \
-  --chuid vcap:vcap \
-  --start \
-  --exec /var/vcap/packages/chartmuseum_pkg/chartmuseum -- \
-  --storage-amazon-region=<%= p('chartmuseum.s3.region', 'us-east-1') %> \
-  --basic-auth-user=${MUSEUM_USERNAME} --basic-auth-pass=${MUSEUM_PASSWORD} \
-   >> "$LOG_DIR/chartmuseum.out.log" \
-  2>> "$LOG_DIR/chartmuseum.err.log"
+/var/vcap/jobs/uaa-crud/packages/uaa-crud_pkg/uaa-crud.linux create --uaa-endpoint <%= p("uaacrud.endpoint") %> \
+  --admin-identity <%= p("uaacrud.admin_identity") %> \
+  --admin-pwd <%= p("uaacrud.admin_password") %> \
+  --target-client-identity <%= p("uaacrud.target_client_identity") %> \
+  --target-client-pwd <%= p("uaacrud.target_client_password") %> \
+  --auth-grant-types <%= p("uaacrud.client_grant_types") %> \
+  --scopes <%= p("uaacrud.client_scopes") %> \
+  --authorities <%= p("uaacrud.client_authorities") %> \
+  --token-validity <%= p("uaacrud.token_validity") %> \
+   >> "$LOG_DIR/pre-start.stdout.log" \
+   2>> "$LOG_DIR/pre-start.stderr.log"
