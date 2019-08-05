@@ -72,6 +72,7 @@ func (cc *clientCreateCmd) run() error {
 		Authorities:          cc.newClientConfig.clientAuthorities,
 	}
 
+	// todo: make this idempotent, and probably other things
 	newClient, err := api.CreateClient(client)
 
 	if err != nil {

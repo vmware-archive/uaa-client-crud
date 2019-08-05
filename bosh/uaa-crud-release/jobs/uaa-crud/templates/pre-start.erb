@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -x
+
+LOG_DIR="/var/vcap/sys/log/uaa-crud"
+RUN_DIR="/var/vcap/sys/run/uaa-crud"
+
+mkdir -p "$LOG_DIR" "$RUN_DIR"
+
+chown -R vcap:vcap "$LOG_DIR" "$RUN_DIR"
+
+export MUSEUM_USERNAME=<%= p("chartmuseum.username", "admin") %>
+export MUSEUM_PASSWORD=<%= Shellwords.escape p("chartmuseum.password") %>
+export PORT=<%= p("chartmuseum.port", "8080") %>
+
+export AWS_ACCESS_KEY_ID=<%= p('chartmuseum.s3.access_key_id') %>
+export AWS_SECRET_ACCESS_KEY=<%= Shellwords.escape p('chartmuseum.s3.secret_access_key') %>
+export STORAGE=amazon
+export STORAGE_AMAZON_BUCKET=<%= p("chartmuseum.s3.bucket_name") %>
+export STORAGE_AMAZON_PREFIX=charts
+export STORAGE_AMAZON_ENDPOINT='<%= p('chartmuseum.s3.endpoint') %>'
+
+
+/sbin/start-stop-daemon \
+  --pidfile "$PIDFILE" \
+  --make-pidfile \
+  --chuid vcap:vcap \
+  --start \
+  --exec /var/vcap/packages/chartmuseum_pkg/chartmuseum -- \
+  --storage-amazon-region=<%= p('chartmuseum.s3.region', 'us-east-1') %> \
+  --basic-auth-user=${MUSEUM_USERNAME} --basic-auth-pass=${MUSEUM_PASSWORD} \
+   >> "$LOG_DIR/chartmuseum.out.log" \
+  2>> "$LOG_DIR/chartmuseum.err.log"
