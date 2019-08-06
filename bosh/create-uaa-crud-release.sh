@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -ex
 
 bosh add-blob ../../uaa-crud.linux uaa-crud.linux
 

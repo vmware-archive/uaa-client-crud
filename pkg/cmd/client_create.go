@@ -72,15 +72,27 @@ func (cc *clientCreateCmd) run() error {
 		Authorities:          cc.newClientConfig.clientAuthorities,
 	}
 
-	// todo: make this idempotent, and probably other things
-	newClient, err := api.CreateClient(client)
-
-	if err != nil {
-		cc.log.Info("Failed to create UAA Client: " + err.Error())
-		return err
+	c, err := api.GetClient(client.ClientID)
+	if c.ClientID == client.ClientID {
+		cc.log.Info("Found existing client ID in UAA, updating")
+		err := api.ChangeClientSecret(client.ClientID, client.ClientSecret)
+		if err != nil {
+			cc.log.Error("Failed to update client secret", err)
+			return err
+		}
+		c, err = api.UpdateClient(client)
+		if err != nil {
+			cc.log.Error("Failed to update client", err)
+			return err
+		}
+	} else {
+		newClient, err := api.CreateClient(client)
+		if err != nil {
+			cc.log.Error("Failed to create UAA Client", err)
+			return err
+		}
+		cc.log.Info(newClient.DisplayName)
 	}
-
-	cc.log.Info(newClient.DisplayName)
 
 	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
 		chAdmin, err := credhub.New(cc.credhubConfig.endpoint,
