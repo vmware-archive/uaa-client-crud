@@ -1,0 +1,7 @@
+---
+name: uaa-crud_pkg
+
+dependencies: []
+
+files:
+- uaa-crud.linux
