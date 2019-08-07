@@ -1,6 +1,6 @@
 ---
 stemcell: bosh-google-kvm-ubuntu-xenial-go_agent
-uaa_endpoint: uaa.example.com
+uaa_endpoint: https://uaa.example.com
 uaa_admin_identity: admin-example
 uaa_admin_password: password-example
 uaa_target_client_identity: app-client
@@ -11,6 +11,6 @@ uaa_client_authorities: "oauth.login"
 uaa_token_validity: 10000
 credhub_identity: credhub_admin_client
 credhub_password: my-fake-password
-credhub_endpoint: credhub.example.com
+credhub_endpoint: https://credhub.example.com
 credhub_credential_path: "/c/ksm/*"
 credhub_permissions: "some permissions"

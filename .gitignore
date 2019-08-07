@@ -1,4 +1,5 @@
 .idea
-/vendor/
+/vendor
 /uaa-crud.linux
+/bosh/uaa-crud-release/config
 

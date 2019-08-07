@@ -36,6 +36,9 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 		PreRun: cc.PreRun,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
+			trimWhitespace(cc.newClientConfig.clientGrantTypes)
+			trimWhitespace(cc.newClientConfig.clientScopes)
+			trimWhitespace(cc.newClientConfig.clientAuthorities)
 			return cc.run()
 		},
 	}
@@ -55,10 +58,6 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 }
 
 func (cc *clientCreateCmd) run() error {
-	trimWhitespace(cc.newClientConfig.clientGrantTypes)
-	trimWhitespace(cc.newClientConfig.clientScopes)
-	trimWhitespace(cc.newClientConfig.clientAuthorities)
-
 	// construct the API, and validate it
 	api := uaa.New(cc.uaaConfig.endpoint, "").WithClientCredentials(cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
 	err := api.Validate()
@@ -116,16 +115,31 @@ func (cc *clientCreateCmd) run() error {
 			cc.log.Error("Failed to connect to CredHub", err)
 			return err
 		}
-		cc.log.Info("adding permission in credhub")
-		_, err = chAdmin.AddPermission(
-			cc.credhubConfig.credPath, "uaa-client:"+cc.targetClientIdentity,
-			cc.credhubConfig.credPermissions,
-		)
 
+		p, err := chAdmin.GetPermissionByPathActor(cc.credhubConfig.credPath, "uaa-client:"+cc.targetClientIdentity)
 		if err != nil {
-			cc.log.Error("Failed to add CredHub permission", err)
-			return err
+			cc.log.Info("adding permission in credhub")
+			_, err = chAdmin.AddPermission(
+				cc.credhubConfig.credPath, "uaa-client:"+cc.targetClientIdentity,
+				cc.credhubConfig.credPermissions,
+			)
+			if err != nil {
+				cc.log.Error("Failed to add CredHub permission", err)
+				return err
+			}
+		} else {
+			cc.log.Info("updating permission in credhub")
+			_, err = chAdmin.UpdatePermission(
+				p.UUID,
+				p.Path, p.Actor,
+				cc.credhubConfig.credPermissions,
+			)
+			if err != nil {
+				cc.log.Error("Failed to update CredHub permission", err)
+				return err
+			}
 		}
+
 	}
 	return nil
 }
