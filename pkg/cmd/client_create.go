@@ -85,7 +85,7 @@ func (cc *clientCreateCmd) run() error {
 			cc.log.Error("Failed to create UAA Client", err)
 			return err
 		} else {
-			cc.log.Debug("Created UAA client [" + newClient.DisplayName + "]")
+			cc.log.Debug("Created UAA client [" + newClient.ClientID + "]")
 		}
 	} else {
 		if c.ClientID == client.ClientID {
@@ -106,6 +106,7 @@ func (cc *clientCreateCmd) run() error {
 	}
 
 	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
+		cc.log.Debug("Found CredHub config")
 		chAdmin, err := credhub.New(cc.credhubConfig.endpoint,
 			credhub.SkipTLSValidation(true),
 			credhub.Auth(auth.UaaClientCredentials(cc.credhubConfig.clientID, cc.credhubConfig.clientPwd)),
@@ -126,6 +127,8 @@ func (cc *clientCreateCmd) run() error {
 			if err != nil {
 				cc.log.Error("Failed to add CredHub permission", err)
 				return err
+			} else {
+				cc.log.Debug("CredHub permission created")
 			}
 		} else {
 			_, err = chAdmin.UpdatePermission(
@@ -137,7 +140,7 @@ func (cc *clientCreateCmd) run() error {
 				cc.log.Error("Failed to update CredHub permission", err)
 				return err
 			} else {
-				cc.log.Debug("CredHub permission created")
+				cc.log.Debug("CredHub permission updated")
 			}
 
 		}
