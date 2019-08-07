@@ -1,5 +1,5 @@
 ---
-name: uaa-crud_pkg
+name: uaa_crud_pkg
 
 dependencies: []
 

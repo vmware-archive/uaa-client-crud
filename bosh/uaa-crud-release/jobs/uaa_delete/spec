@@ -1,11 +1,11 @@
 ---
-name: uaa-delete
+name: uaa_delete
 
 templates:
-  uaa-delete.erb: bin/run
+  uaa_delete.erb: bin/run
 
 packages:
-  - uaa-crud_pkg
+  - uaa_crud_pkg
 
 properties:
   uaacrud.endpoint:

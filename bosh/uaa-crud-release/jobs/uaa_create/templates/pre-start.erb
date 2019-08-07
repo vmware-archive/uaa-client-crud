@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-set -x
+set -e
 
-LOG_DIR="/var/vcap/sys/log/uaa-crud"
+LOG_DIR="/var/vcap/sys/log/uaa_create"
 
 mkdir -p "$LOG_DIR"
 
@@ -13,7 +13,7 @@ export CREDHUB_URL=<%= p("credhub.endpoint") %>
 export CREDHUB_CRED_PATH=<%= p("credhub.credential_path") %>
 export CREDHUB_PERMISSIONS=<%= p("credhub.permissions") %>
 
-/var/vcap/jobs/uaa-crud/packages/uaa-crud_pkg/uaa-crud.linux create --uaa-endpoint <%= p("uaacrud.endpoint") %> \
+/var/vcap/jobs/uaa_create/packages/uaa_crud_pkg/uaa-crud.linux create --uaa-endpoint <%= p("uaacrud.endpoint") %> \
   --admin-identity <%= p("uaacrud.admin_identity") %> \
   --admin-pwd <%= p("uaacrud.admin_password") %> \
   --target-client-identity <%= p("uaacrud.target_client_identity") %> \

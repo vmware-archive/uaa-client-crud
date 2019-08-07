@@ -1,11 +1,11 @@
 ---
-name: uaa-crud
+name: uaa_create
 
 templates:
   pre-start.erb: bin/pre-start
 
 packages:
-  - uaa-crud_pkg
+  - uaa_crud_pkg
 
 properties:
   uaacrud.endpoint:

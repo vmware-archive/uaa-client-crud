@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-set -x
+set -e
 
-LOG_DIR="/var/vcap/sys/log/uaa-delete"
+LOG_DIR="/var/vcap/sys/log/uaa_delete"
 
 mkdir -p "$LOG_DIR"
 
@@ -12,9 +12,9 @@ export CREDHUB_CLIENT_PASSWORD=<%= p("credhub.password") %>
 export CREDHUB_URL=<%= p("credhub.endpoint") %>
 export CREDHUB_CRED_PATH=<%= p("credhub.credential_path") %>
 
-/var/vcap/jobs/uaa-delete/packages/uaa-crud_pkg/uaa-crud.linux delete --uaa-endpoint <%= p("uaacrud.endpoint") %> \
+/var/vcap/jobs/uaa_delete/packages/uaa_crud_pkg/uaa-crud.linux delete --uaa-endpoint <%= p("uaacrud.endpoint") %> \
   --admin-identity <%= p("uaacrud.admin_identity") %> \
   --admin-pwd <%= p("uaacrud.admin_password") %> \
   --target-client-identity <%= p("uaacrud.target_client_identity") %> -v \
-   1>> "$LOG_DIR/uaa-delete.stdout.log" \
-   2>> "$LOG_DIR/uaa-delete.stderr.log"
+   1>> "$LOG_DIR/uaa_delete.stdout.log" \
+   2>> "$LOG_DIR/uaa_delete.stderr.log"

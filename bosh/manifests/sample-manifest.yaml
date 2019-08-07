@@ -1,7 +1,7 @@
-name: uaa-crud
+name: uaa_crud
 
 releases:
-  - name: uaa-crud
+  - name: uaa_crud
     version: latest
 
 stemcells:
@@ -16,38 +16,14 @@ update:
   update_watch_time: 1000-30000
 
 instance_groups:
-- name: uaa_delete
-  instances: 1
-  azs: [z1]
-  lifecycle: errand
-  jobs:
-    - name: uaa-delete
-      release: uaa-crud
-  properties:
-    uaacrud:
-      endpoint: ((uaa_endpoint))
-      admin_identity: ((uaa_admin_identity))
-      admin_password: ((uaa_admin_password))
-      target_client_identity: ((uaa_target_client_identity))
-    credhub:
-      identity: ((credhub_identity))
-      password: ((credhub_password))
-      endpoint: ((credhub_endpoint))
-      credential_path: ((credhub_credential_path))
-  vm_type: default
-  cloud_properties:
-    tags:
-      - allow-ssh
-  stemcell: ((stemcell))
-  networks:
-    - name: default
-
 - name: uaa_crud_node
   instances: 1
   azs: [z1]
   jobs:
-    - name: uaa-crud
-      release: uaa-crud
+    - name: uaa_create
+      release: uaa_crud
+    - name: uaa_delete
+      release: uaa_crud
   properties:
     uaacrud:
       endpoint: ((uaa_endpoint))
