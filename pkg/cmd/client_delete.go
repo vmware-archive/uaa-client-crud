@@ -41,15 +41,20 @@ func (cd *clientDeleteCmd) run() error {
 	if err != nil {
 		cd.log.Error("", err)
 	}
-
-	_, err = api.DeleteClient(cd.targetClientIdentity)
-
-	if err != nil {
-		cd.log.Error("Failed to delete UAA Client", err)
-		return err
+	_, err = api.GetClient(cd.targetClientIdentity)
+	if err == nil {
+		_, err = api.DeleteClient(cd.targetClientIdentity)
+		if err != nil {
+			cd.log.Error("Failed to delete UAA client ["+cd.targetClientIdentity+"]", err)
+			return err
+		} else {
+			cd.log.Debug("UAA client [" + cd.targetClientIdentity + "] deleted")
+		}
+	} else {
+		cd.log.Debug("UAA client [" + cd.targetClientIdentity + "]. Skipping delete")
 	}
 
-	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPermissions != nil && cd.credhubConfig.credPath != "" {
+	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientPwd != "" {
 
 		chAdmin, err := credhub.New(cd.credhubConfig.endpoint,
 			credhub.SkipTLSValidation(true),
@@ -64,13 +69,15 @@ func (cd *clientDeleteCmd) run() error {
 
 		permission, err := chAdmin.GetPermissionByPathActor(cd.credhubConfig.credPath, "uaa-client:"+cd.targetClientIdentity)
 		if err != nil {
-			cd.log.Error("Failed to get Permission object", err)
-			return err
-		}
-		_, err = chAdmin.DeletePermission(permission.UUID)
-		if err != nil {
-			cd.log.Error("Failed to delete Permission object", err)
-			return err
+			cd.log.Debug("Failed to get permission object from CredHub. Skipping delete")
+		} else {
+			_, err = chAdmin.DeletePermission(permission.UUID)
+			if err != nil {
+				cd.log.Error("Failed to delete permission object in CredHub", err)
+				return err
+			} else {
+				cd.log.Debug("CredHub permission deleted")
+			}
 		}
 
 	}

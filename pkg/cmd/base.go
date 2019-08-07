@@ -34,7 +34,7 @@ type baseCmd struct {
 func newBaseCmd(out io.Writer) baseCmd {
 	base := baseCmd{
 		out: out,
-		log: lager.NewLogger("uaa-crud-cli"),
+		log: lager.NewLogger("uaa-crud"),
 	}
 
 	return base

@@ -76,17 +76,17 @@ func (cc *clientCreateCmd) run() error {
 		Scope:                cc.newClientConfig.clientScopes,
 		Authorities:          cc.newClientConfig.clientAuthorities,
 	}
-	cc.log.Info("checking if client already exists")
 	c, err := api.GetClient(client.ClientID)
 
 	if err != nil {
-		cc.log.Info("UAA client does not exist. Creating")
-		newClient, err2 := api.CreateClient(client)
-		if err2 != nil {
+		cc.log.Debug("UAA client does not exist. Creating.")
+		newClient, err := api.CreateClient(client)
+		if err != nil {
 			cc.log.Error("Failed to create UAA Client", err)
-			return err2
+			return err
+		} else {
+			cc.log.Debug("Created UAA client [" + newClient.DisplayName + "]")
 		}
-		cc.log.Info(newClient.DisplayName)
 	} else {
 		if c.ClientID == client.ClientID {
 			cc.log.Info("Found existing client ID in UAA, updating")
@@ -99,12 +99,13 @@ func (cc *clientCreateCmd) run() error {
 			if err != nil {
 				cc.log.Error("Failed to update client", err)
 				return err
+			} else {
+				cc.log.Debug("UAA client updated")
 			}
 		}
 	}
 
 	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
-		cc.log.Info("connecting to credhub")
 		chAdmin, err := credhub.New(cc.credhubConfig.endpoint,
 			credhub.SkipTLSValidation(true),
 			credhub.Auth(auth.UaaClientCredentials(cc.credhubConfig.clientID, cc.credhubConfig.clientPwd)),
@@ -118,7 +119,6 @@ func (cc *clientCreateCmd) run() error {
 
 		p, err := chAdmin.GetPermissionByPathActor(cc.credhubConfig.credPath, "uaa-client:"+cc.targetClientIdentity)
 		if err != nil {
-			cc.log.Info("adding permission in credhub")
 			_, err = chAdmin.AddPermission(
 				cc.credhubConfig.credPath, "uaa-client:"+cc.targetClientIdentity,
 				cc.credhubConfig.credPermissions,
@@ -128,7 +128,6 @@ func (cc *clientCreateCmd) run() error {
 				return err
 			}
 		} else {
-			cc.log.Info("updating permission in credhub")
 			_, err = chAdmin.UpdatePermission(
 				p.UUID,
 				p.Path, p.Actor,
@@ -137,7 +136,10 @@ func (cc *clientCreateCmd) run() error {
 			if err != nil {
 				cc.log.Error("Failed to update CredHub permission", err)
 				return err
+			} else {
+				cc.log.Debug("CredHub permission created")
 			}
+
 		}
 
 	}
