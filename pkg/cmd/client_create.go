@@ -7,6 +7,7 @@ import (
 
 	"code.cloudfoundry.org/credhub-cli/credhub"
 	"code.cloudfoundry.org/credhub-cli/credhub/auth"
+	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,7 @@ import (
 type clientCreateCmd struct {
 	baseCmd
 	newClientConfig uaaClientConfig
+	uaaClient       interfaces.UaaApi
 }
 
 type uaaClientConfig struct {
@@ -24,10 +26,11 @@ type uaaClientConfig struct {
 	clientTokenValidity int64
 }
 
-func NewCreateClientCmd(out io.Writer) *cobra.Command {
+func NewCreateClientCmd(out io.Writer, uaa myUaaClient) *cobra.Command {
 	cc := &clientCreateCmd{
 		newBaseCmd(out),
 		uaaClientConfig{},
+		uaa,
 	}
 
 	cmd := &cobra.Command{
