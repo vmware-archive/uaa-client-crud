@@ -1,0 +1,4 @@
+set -e
+
+chmod +x uaa-crud.linux
+cp uaa-crud.linux ${BOSH_INSTALL_TARGET}

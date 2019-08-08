@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -e
+
+LOG_DIR="/var/vcap/sys/log/uaa_create"
+
+mkdir -p "$LOG_DIR"
+
+chown -R vcap:vcap "$LOG_DIR"
+
+export CREDHUB_CLIENT_ID=<%= p("credhub.identity") %>
+export CREDHUB_CLIENT_PASSWORD=<%= p("credhub.password") %>
+export CREDHUB_URL=<%= p("credhub.endpoint") %>
+export CREDHUB_CRED_PATH=<%= p("credhub.credential_path") %>
+export CREDHUB_PERMISSIONS=<%= p("credhub.permissions") %>
+
+/var/vcap/jobs/uaa_create/packages/uaa_crud_pkg/uaa-crud.linux create --uaa-endpoint <%= p("uaacrud.endpoint") %> \
+  --admin-identity <%= p("uaacrud.admin_identity") %> \
+  --admin-pwd <%= p("uaacrud.admin_password") %> \
+  --target-client-identity <%= p("uaacrud.target_client_identity") %> \
+  --target-client-pwd <%= p("uaacrud.target_client_password") %> \
+  --auth-grant-types "<%= p("uaacrud.client_grant_types") %>" \
+  --scopes "<%= p("uaacrud.client_scopes") %>" \
+  --authorities "<%= p("uaacrud.client_authorities") %>" \
+  --token-validity <%= p("uaacrud.token_validity") %> -v \
+   1>> "$LOG_DIR/pre-start.stdout.log" \
+   2>> "$LOG_DIR/pre-start.stderr.log"

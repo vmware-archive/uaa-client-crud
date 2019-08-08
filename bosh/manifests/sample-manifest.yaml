@@ -1,0 +1,50 @@
+name: uaa_crud
+
+releases:
+  - name: uaa_crud
+    version: latest
+
+stemcells:
+  - alias: ((stemcell))
+    os: ubuntu-xenial
+    version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+- name: uaa_crud_node
+  instances: 1
+  azs: [z1]
+  jobs:
+    - name: uaa_create
+      release: uaa_crud
+    - name: uaa_delete
+      release: uaa_crud
+  properties:
+    uaacrud:
+      endpoint: ((uaa_endpoint))
+      admin_identity: ((uaa_admin_identity))
+      admin_password: ((uaa_admin_password))
+      target_client_identity: ((uaa_target_client_identity))
+      target_client_password: ((uaa_target_client_password))
+      client_grant_types: ((uaa_target_client_grant_types))
+      client_scopes: ((uaa_client_scopes))
+      client_authorities: ((uaa_client_authorities))
+      token_validity: ((uaa_token_validity))
+    credhub:
+      identity: ((credhub_identity))
+      password: ((credhub_password))
+      endpoint: ((credhub_endpoint))
+      credential_path: ((credhub_credential_path))
+      permissions: ((credhub_permissions))
+  vm_type: default
+  cloud_properties:
+    tags:
+      - allow-ssh
+  stemcell: ((stemcell))
+  networks:
+    - name: default

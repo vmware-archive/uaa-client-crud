@@ -1,0 +1,26 @@
+---
+name: uaa_delete
+
+templates:
+  uaa_delete.erb: bin/run
+
+packages:
+  - uaa_crud_pkg
+
+properties:
+  uaacrud.endpoint:
+    description: UAA Endpoint
+  uaacrud.admin_identity:
+    description: UAA Admin Username
+  uaacrud.admin_password:
+    description: UAA Admin Password
+  uaacrud.target_client_identity:
+    description: Target Client Identity
+  credhub.identity:
+    description: Credhub Client Identity
+  credhub.password:
+    description: Credhub Client Password
+  credhub.endpoint:
+    description: Credhub Endpoint
+  credhub.credential_path:
+    description: Credhub Credential Path
