@@ -15,22 +15,29 @@ import (
 type clientCreateCmd struct {
 	baseCmd
 	newClientConfig uaaClientConfig
-	uaaClient       interfaces.UaaApi
+	uaaApiFactory   UaaApiFactory
 }
 
 type uaaClientConfig struct {
-	clientPwd           string
-	clientGrantTypes    []string
+	clientPwd        string
+	clientGrantTypes []string
+
 	clientScopes        []string
 	clientAuthorities   []string
 	clientTokenValidity int64
 }
 
-func NewCreateClientCmd(out io.Writer, uaa myUaaClient) *cobra.Command {
+type UaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) *interfaces.UaaApi
+
+func UaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientPwd string) *interfaces.UaaApi {
+	return interfaces.NewUaaApi(target, zoneID, adminClientIdentity, adminClientPwd)
+}
+
+func NewCreateClientCmd(uaaApiFactory UaaApiFactory, out io.Writer) *cobra.Command {
 	cc := &clientCreateCmd{
 		newBaseCmd(out),
 		uaaClientConfig{},
-		uaa,
+		uaaApiFactory,
 	}
 
 	cmd := &cobra.Command{
@@ -62,8 +69,9 @@ func NewCreateClientCmd(out io.Writer, uaa myUaaClient) *cobra.Command {
 
 func (cc *clientCreateCmd) run() error {
 	// construct the API, and validate it
-	api := uaa.New(cc.uaaConfig.endpoint, "").WithClientCredentials(cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
-	err := api.Validate()
+	apiClient := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd)
+
+	err := apiClient.UaaApi.Validate()
 	if err != nil {
 		cc.log.Error("Error validating UUA API client", err)
 		return err
@@ -79,11 +87,11 @@ func (cc *clientCreateCmd) run() error {
 		Scope:                cc.newClientConfig.clientScopes,
 		Authorities:          cc.newClientConfig.clientAuthorities,
 	}
-	c, err := api.GetClient(client.ClientID)
+	c, err := apiClient.UaaApi.GetClient(client.ClientID)
 
 	if err != nil {
 		cc.log.Debug("UAA client does not exist. Creating.")
-		newClient, err := api.CreateClient(client)
+		newClient, err := apiClient.UaaApi.CreateClient(client)
 		if err != nil {
 			cc.log.Error("Failed to create UAA Client", err)
 			return err
@@ -93,12 +101,12 @@ func (cc *clientCreateCmd) run() error {
 	} else {
 		if c.ClientID == client.ClientID {
 			cc.log.Info("Found existing client ID in UAA, updating")
-			err := api.ChangeClientSecret(client.ClientID, client.ClientSecret)
+			err := apiClient.UaaApi.ChangeClientSecret(client.ClientID, client.ClientSecret)
 			if err != nil {
 				cc.log.Error("Failed to update client secret", err)
 				return err
 			}
-			c, err = api.UpdateClient(client)
+			c, err = apiClient.UaaApi.UpdateClient(client)
 			if err != nil {
 				cc.log.Error("Failed to update client", err)
 				return err

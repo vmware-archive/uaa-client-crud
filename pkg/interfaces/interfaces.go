@@ -4,8 +4,8 @@ import (
 	"github.com/cloudfoundry-community/go-uaa"
 )
 
-type myUaaClient interface {
-	New(target string, zoneID string)
+type UaaApi struct {
+	UaaApi *uaa.API
 }
 
 type uaaAPI interface {
@@ -15,6 +15,6 @@ type uaaAPI interface {
 	ChangeClientSecret(id string, newSecret string) error
 }
 
-type UaaApi struct {
-	uaaApi uaaAPI
+func NewUaaApi(target string, zoneID string, adminClientIdentity string, adminClientPwd string) *UaaApi {
+	return &UaaApi{uaa.New(target, zoneID).WithClientCredentials(adminClientIdentity, adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)}
 }
