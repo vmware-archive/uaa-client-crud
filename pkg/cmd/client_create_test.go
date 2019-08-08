@@ -4,11 +4,17 @@ import (
 	"bufio"
 	"bytes"
 
+	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
+	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces/interfacesfakes"
+
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/cmd"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 )
+
+var fakeUaaClient *interfacesfakes.FakeUaaAPI
+var fakeCredHubClient *interfacesfakes.FakeCredHubAPI
 
 var _ = Describe("Client create", func() {
 	var b bytes.Buffer
@@ -18,7 +24,19 @@ var _ = Describe("Client create", func() {
 	BeforeEach(func() {
 		b = bytes.Buffer{}
 		out = bufio.NewWriter(&b)
-		c = cmd.NewCreateClientCmd(out)
+
+		fakeUaaClient = &interfacesfakes.FakeUaaAPI{}
+		fakeCredHubClient = &interfacesfakes.FakeCredHubAPI{}
+
+		uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
+			return fakeUaaClient
+		}
+
+		credHubFactory := func(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) interfaces.CredHubAPI {
+			return fakeCredHubClient
+		}
+
+		c = cmd.NewCreateClientCmd(uaaApiFactory, credHubFactory, out)
 		c.Flags().Set("uaa-endpoint", "bob")
 		c.Flags().Set("admin-identity", "monkey123")
 		c.Flags().Set("admin-pwd", "bob")

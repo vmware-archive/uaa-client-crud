@@ -5,8 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"code.cloudfoundry.org/credhub-cli/credhub"
-	"code.cloudfoundry.org/credhub-cli/credhub/auth"
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
@@ -16,6 +14,7 @@ type clientCreateCmd struct {
 	baseCmd
 	newClientConfig uaaClientConfig
 	uaaApiFactory   UaaApiFactory
+	credHubFactory  CredHubFactory
 }
 
 type uaaClientConfig struct {
@@ -27,17 +26,24 @@ type uaaClientConfig struct {
 	clientTokenValidity int64
 }
 
-type UaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) *interfaces.UaaApi
+type UaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI
 
-func UaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientPwd string) *interfaces.UaaApi {
+func UaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
 	return interfaces.NewUaaApi(target, zoneID, adminClientIdentity, adminClientPwd)
 }
 
-func NewCreateClientCmd(uaaApiFactory UaaApiFactory, out io.Writer) *cobra.Command {
+type CredHubFactory func(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) interfaces.CredHubAPI
+
+func CredHubFactoryDefault(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) interfaces.CredHubAPI {
+	return interfaces.NewCredHubApi(target, skipTLS, clientID, clientPwd, uaaEndpoint)
+}
+
+func NewCreateClientCmd(uaaApiFactory UaaApiFactory, credHubFactory CredHubFactory, out io.Writer) *cobra.Command {
 	cc := &clientCreateCmd{
 		newBaseCmd(out),
 		uaaClientConfig{},
 		uaaApiFactory,
+		credHubFactory,
 	}
 
 	cmd := &cobra.Command{
@@ -71,7 +77,7 @@ func (cc *clientCreateCmd) run() error {
 	// construct the API, and validate it
 	apiClient := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd)
 
-	err := apiClient.UaaApi.Validate()
+	err := apiClient.Validate()
 	if err != nil {
 		cc.log.Error("Error validating UUA API client", err)
 		return err
@@ -87,11 +93,11 @@ func (cc *clientCreateCmd) run() error {
 		Scope:                cc.newClientConfig.clientScopes,
 		Authorities:          cc.newClientConfig.clientAuthorities,
 	}
-	c, err := apiClient.UaaApi.GetClient(client.ClientID)
+	c, err := apiClient.GetClient(client.ClientID)
 
 	if err != nil {
 		cc.log.Debug("UAA client does not exist. Creating.")
-		newClient, err := apiClient.UaaApi.CreateClient(client)
+		newClient, err := apiClient.CreateClient(client)
 		if err != nil {
 			cc.log.Error("Failed to create UAA Client", err)
 			return err
@@ -101,12 +107,12 @@ func (cc *clientCreateCmd) run() error {
 	} else {
 		if c.ClientID == client.ClientID {
 			cc.log.Info("Found existing client ID in UAA, updating")
-			err := apiClient.UaaApi.ChangeClientSecret(client.ClientID, client.ClientSecret)
+			err := apiClient.ChangeClientSecret(client.ClientID, client.ClientSecret)
 			if err != nil {
 				cc.log.Error("Failed to update client secret", err)
 				return err
 			}
-			c, err = apiClient.UaaApi.UpdateClient(client)
+			c, err = apiClient.UpdateClient(client)
 			if err != nil {
 				cc.log.Error("Failed to update client", err)
 				return err
@@ -118,10 +124,11 @@ func (cc *clientCreateCmd) run() error {
 
 	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
 		cc.log.Debug("Found CredHub config")
-		chAdmin, err := credhub.New(cc.credhubConfig.endpoint,
-			credhub.SkipTLSValidation(true),
-			credhub.Auth(auth.UaaClientCredentials(cc.credhubConfig.clientID, cc.credhubConfig.clientPwd)),
-			credhub.AuthURL(cc.uaaConfig.endpoint),
+		chAdmin := cc.credHubFactory(cc.credhubConfig.endpoint,
+			true,
+			cc.credhubConfig.clientID,
+			cc.credhubConfig.clientPwd,
+			cc.uaaConfig.endpoint,
 		)
 
 		if err != nil {

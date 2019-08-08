@@ -14,7 +14,7 @@ func NewRootCmd(args []string) *cobra.Command {
 	flags := root.PersistentFlags()
 	out := root.OutOrStdout()
 	root.AddCommand(
-		NewCreateClientCmd(UaaApiFactoryDefault, out),
+		NewCreateClientCmd(UaaApiFactoryDefault, CredHubFactoryDefault, out),
 		NewDeleteClientCmd(out),
 	)
 
