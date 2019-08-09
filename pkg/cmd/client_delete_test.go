@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"os"
 
+	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
 	"github.com/cloudfoundry-community/go-uaa"
-	"github.com/pkg/errors"
 
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces/interfacesfakes"
@@ -17,15 +17,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _ = Describe("Client create", func() {
+var _ = Describe("Client delete", func() {
+	var fakeUaaClient *interfacesfakes.FakeUaaAPI
+	var fakeCredHubClient *interfacesfakes.FakeCredHubAPI
+
 	var b bytes.Buffer
 	var out *bufio.Writer
 	var c *cobra.Command
 	var uaaEndpoint string
 	var credhubEndpoint string
-
-	var fakeUaaClient *interfacesfakes.FakeUaaAPI
-	var fakeCredHubClient *interfacesfakes.FakeCredHubAPI
 
 	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
 		uaaEndpoint = target
@@ -44,43 +44,45 @@ var _ = Describe("Client create", func() {
 		fakeUaaClient = &interfacesfakes.FakeUaaAPI{}
 		fakeCredHubClient = &interfacesfakes.FakeCredHubAPI{}
 
-		c = cmd.NewCreateClientCmd(uaaApiFactory, credHubFactory, out)
+		c = cmd.NewDeleteClientCmd(uaaApiFactory, credHubFactory, out)
 		c.Flags().Set("uaa-endpoint", "bob")
 		c.Flags().Set("admin-identity", "monkey123")
 		c.Flags().Set("admin-pwd", "bob")
 		c.Flags().Set("target-client-identity", "monkey123")
-		c.Flags().Set("target-client-password", "p@ssw0rD")
-		c.Flags().Set("authorities", "auth1, auth2")
 	})
 
-	It("happy path client does not already exist", func() {
+	It("happy path client does exist and gets deleted", func() {
 
-		fakeUaaClient.GetClientReturns(nil, errors.New("client does not exist"))
-		fakeUaaClient.CreateClientReturns(&uaa.Client{ClientID: "monkey123"}, nil)
-		fakeCredHubClient.GetPermissionByPathActorReturns(nil, errors.New("permission not found"))
-		fakeCredHubClient.AddPermissionReturns(nil, nil)
+		fakeUaaClient.GetClientReturns(&uaa.Client{}, nil)
+		fakeUaaClient.DeleteClientReturns(&uaa.Client{}, nil)
+		fakeCredHubClient.GetPermissionByPathActorReturns(&permissions.Permission{UUID: "123"}, nil)
+		fakeCredHubClient.DeletePermissionReturns(&permissions.Permission{}, nil)
 
 		c.Flags().Set("credhub-identity", "bob")
 		c.Flags().Set("credhub-password", "monkey123")
 		c.Flags().Set("credhub-endpoint", "bob")
 		c.Flags().Set("credential-path", "monkey123")
+
 		c.PreRun(c, []string{})
 		err := c.RunE(c, []string{})
 		out.Flush()
 
 		Expect(err).To(BeNil())
-		Expect(fakeUaaClient.CreateClientCallCount()).To(Equal(1))
-		Expect(fakeCredHubClient.AddPermissionCallCount()).To(Equal(1))
+		Expect(fakeUaaClient.DeleteClientCallCount()).To(Equal(1))
+		Expect(fakeUaaClient.DeleteClientArgsForCall(0)).To(Equal("monkey123"))
+		Expect(fakeCredHubClient.DeletePermissionCallCount()).To(Equal(1))
+		Expect(fakeCredHubClient.DeletePermissionArgsForCall(0)).To(Equal("123"))
+
 	})
 
-	It("setting env vars for credhub are passed to clientCreate", func() {
+	It("setting env vars for credhub are passed to clientDelete", func() {
 
 		os.Setenv("CREDHUB_CLIENT_ID", "notbob")
 		os.Setenv("CREDHUB_CLIENT_PASSWORD", "monkey123")
 		os.Setenv("CREDHUB_URL", "https://credhub.endpoint")
 		os.Setenv("CREDHUB_CRED_PATH", "/path")
 
-		cc := cmd.NewCreateClientCmd(uaaApiFactory, credHubFactory, out)
+		cc := cmd.NewDeleteClientCmd(uaaApiFactory, credHubFactory, out)
 
 		Expect(cc.Flag("credhub-identity").Value.String()).To(Equal("notbob"))
 		Expect(cc.Flag("credhub-password").Value.String()).To(Equal("monkey123"))
@@ -91,17 +93,17 @@ var _ = Describe("Client create", func() {
 
 	It("credhub and uaa endpoints gets appended https://", func() {
 
-		fakeUaaClient.GetClientReturns(nil, errors.New("client does not exist"))
-		fakeUaaClient.CreateClientReturns(&uaa.Client{ClientID: "monkey123"}, nil)
-		fakeCredHubClient.GetPermissionByPathActorReturns(nil, errors.New("permission not found"))
-		fakeCredHubClient.AddPermissionReturns(nil, nil)
+		fakeUaaClient.GetClientReturns(&uaa.Client{}, nil)
+		fakeUaaClient.DeleteClientReturns(&uaa.Client{}, nil)
+		fakeCredHubClient.GetPermissionByPathActorReturns(&permissions.Permission{UUID: "123"}, nil)
+		fakeCredHubClient.DeletePermissionReturns(&permissions.Permission{}, nil)
 
 		os.Setenv("CREDHUB_CLIENT_ID", "notbob")
 		os.Setenv("CREDHUB_CLIENT_PASSWORD", "monkey123")
 		os.Setenv("CREDHUB_URL", "credhub.endpoint")
 		os.Setenv("CREDHUB_CRED_PATH", "/path")
 
-		cc := cmd.NewCreateClientCmd(uaaApiFactory, credHubFactory, out)
+		cc := cmd.NewDeleteClientCmd(uaaApiFactory, credHubFactory, out)
 		cc.Flags().Set("uaa-endpoint", "bob")
 
 		cc.PreRun(cc, []string{})

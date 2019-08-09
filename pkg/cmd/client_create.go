@@ -5,8 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"code.cloudfoundry.org/credhub-cli/credhub"
-	"code.cloudfoundry.org/credhub-cli/credhub/auth"
 	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
 )
@@ -17,16 +15,19 @@ type clientCreateCmd struct {
 }
 
 type uaaClientConfig struct {
-	clientPwd           string
-	clientGrantTypes    []string
+	clientPwd        string
+	clientGrantTypes []string
+
 	clientScopes        []string
 	clientAuthorities   []string
 	clientTokenValidity int64
 }
 
-func NewCreateClientCmd(out io.Writer) *cobra.Command {
+func NewCreateClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFactory, out io.Writer) *cobra.Command {
 	cc := &clientCreateCmd{
-		newBaseCmd(out),
+		newBaseCmd(
+			uaaApiFactory,
+			credHubFactory, out),
 		uaaClientConfig{},
 	}
 
@@ -59,8 +60,9 @@ func NewCreateClientCmd(out io.Writer) *cobra.Command {
 
 func (cc *clientCreateCmd) run() error {
 	// construct the API, and validate it
-	api := uaa.New(cc.uaaConfig.endpoint, "").WithClientCredentials(cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
-	err := api.Validate()
+	apiClient := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd)
+
+	err := apiClient.Validate()
 	if err != nil {
 		cc.log.Error("Error validating UUA API client", err)
 		return err
@@ -76,11 +78,11 @@ func (cc *clientCreateCmd) run() error {
 		Scope:                cc.newClientConfig.clientScopes,
 		Authorities:          cc.newClientConfig.clientAuthorities,
 	}
-	c, err := api.GetClient(client.ClientID)
+	c, err := apiClient.GetClient(client.ClientID)
 
 	if err != nil {
 		cc.log.Debug("UAA client does not exist. Creating.")
-		newClient, err := api.CreateClient(client)
+		newClient, err := apiClient.CreateClient(client)
 		if err != nil {
 			cc.log.Error("Failed to create UAA Client", err)
 			return err
@@ -90,12 +92,12 @@ func (cc *clientCreateCmd) run() error {
 	} else {
 		if c.ClientID == client.ClientID {
 			cc.log.Info("Found existing client ID in UAA, updating")
-			err := api.ChangeClientSecret(client.ClientID, client.ClientSecret)
+			err := apiClient.ChangeClientSecret(client.ClientID, client.ClientSecret)
 			if err != nil {
 				cc.log.Error("Failed to update client secret", err)
 				return err
 			}
-			c, err = api.UpdateClient(client)
+			c, err = apiClient.UpdateClient(client)
 			if err != nil {
 				cc.log.Error("Failed to update client", err)
 				return err
@@ -107,10 +109,11 @@ func (cc *clientCreateCmd) run() error {
 
 	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
 		cc.log.Debug("Found CredHub config")
-		chAdmin, err := credhub.New(cc.credhubConfig.endpoint,
-			credhub.SkipTLSValidation(true),
-			credhub.Auth(auth.UaaClientCredentials(cc.credhubConfig.clientID, cc.credhubConfig.clientPwd)),
-			credhub.AuthURL(cc.uaaConfig.endpoint),
+		chAdmin, err := cc.credHubFactory(cc.credhubConfig.endpoint,
+			true,
+			cc.credhubConfig.clientID,
+			cc.credhubConfig.clientPwd,
+			cc.uaaConfig.endpoint,
 		)
 
 		if err != nil {

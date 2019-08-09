@@ -3,9 +3,6 @@ package cmd
 import (
 	"io"
 
-	"code.cloudfoundry.org/credhub-cli/credhub"
-	"code.cloudfoundry.org/credhub-cli/credhub/auth"
-	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
 )
 
@@ -13,9 +10,9 @@ type clientDeleteCmd struct {
 	baseCmd
 }
 
-func NewDeleteClientCmd(out io.Writer) *cobra.Command {
+func NewDeleteClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFactory, out io.Writer) *cobra.Command {
 	cd := &clientDeleteCmd{
-		baseCmd: newBaseCmd(out),
+		baseCmd: newBaseCmd(uaaApiFactory, credHubFactory, out),
 	}
 
 	cmd := &cobra.Command{
@@ -36,14 +33,14 @@ func NewDeleteClientCmd(out io.Writer) *cobra.Command {
 func (cd *clientDeleteCmd) run() error {
 
 	// construct the API, and validate it
-	api := uaa.New(cd.uaaConfig.endpoint, "").WithClientCredentials(cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)
-	err := api.Validate()
+	apiClient := cd.uaaApiFactory(cd.uaaConfig.endpoint, "", cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientPwd)
+	err := apiClient.Validate()
 	if err != nil {
 		cd.log.Error("", err)
 	}
-	_, err = api.GetClient(cd.targetClientIdentity)
+	_, err = apiClient.GetClient(cd.targetClientIdentity)
 	if err == nil {
-		_, err = api.DeleteClient(cd.targetClientIdentity)
+		_, err = apiClient.DeleteClient(cd.targetClientIdentity)
 		if err != nil {
 			cd.log.Error("Failed to delete UAA client ["+cd.targetClientIdentity+"]", err)
 			return err
@@ -56,10 +53,11 @@ func (cd *clientDeleteCmd) run() error {
 
 	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientPwd != "" {
 
-		chAdmin, err := credhub.New(cd.credhubConfig.endpoint,
-			credhub.SkipTLSValidation(true),
-			credhub.Auth(auth.UaaClientCredentials(cd.credhubConfig.clientID, cd.credhubConfig.clientPwd)),
-			credhub.AuthURL(cd.uaaConfig.endpoint),
+		chAdmin, err := cd.credHubFactory(cd.credhubConfig.endpoint,
+			true,
+			cd.credhubConfig.clientID,
+			cd.credhubConfig.clientPwd,
+			cd.uaaConfig.endpoint,
 		)
 
 		if err != nil {

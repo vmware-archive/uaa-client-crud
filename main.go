@@ -17,30 +17,10 @@ import (
 	"os"
 
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/cmd"
-	"github.com/spf13/cobra"
 )
 
-func newRootCmd(args []string) *cobra.Command {
-	root := &cobra.Command{
-		Use:     "uaaclient",
-		Short:   "uaa-client-crud",
-		Version: "0.1.0",
-	}
-
-	flags := root.PersistentFlags()
-	out := root.OutOrStdout()
-	root.AddCommand(
-		cmd.NewCreateClientCmd(out),
-		cmd.NewDeleteClientCmd(out),
-	)
-
-	flags.Parse(args)
-
-	return root
-}
-
 func main() {
-	rootCmd := newRootCmd(os.Args[1:])
+	rootCmd := cmd.NewRootCmd(os.Args[1:])
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
