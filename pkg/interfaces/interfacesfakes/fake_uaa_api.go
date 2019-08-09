@@ -2,9 +2,9 @@
 package interfacesfakes
 
 import (
-	sync "sync"
+	"sync"
 
-	interfaces "github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
+	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 	uaa "github.com/cloudfoundry-community/go-uaa"
 )
 
@@ -31,6 +31,19 @@ type FakeUaaAPI struct {
 		result2 error
 	}
 	createClientReturnsOnCall map[int]struct {
+		result1 *uaa.Client
+		result2 error
+	}
+	DeleteClientStub        func(string) (*uaa.Client, error)
+	deleteClientMutex       sync.RWMutex
+	deleteClientArgsForCall []struct {
+		arg1 string
+	}
+	deleteClientReturns struct {
+		result1 *uaa.Client
+		result2 error
+	}
+	deleteClientReturnsOnCall map[int]struct {
 		result1 *uaa.Client
 		result2 error
 	}
@@ -193,6 +206,69 @@ func (fake *FakeUaaAPI) CreateClientReturnsOnCall(i int, result1 *uaa.Client, re
 		})
 	}
 	fake.createClientReturnsOnCall[i] = struct {
+		result1 *uaa.Client
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeUaaAPI) DeleteClient(arg1 string) (*uaa.Client, error) {
+	fake.deleteClientMutex.Lock()
+	ret, specificReturn := fake.deleteClientReturnsOnCall[len(fake.deleteClientArgsForCall)]
+	fake.deleteClientArgsForCall = append(fake.deleteClientArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("DeleteClient", []interface{}{arg1})
+	fake.deleteClientMutex.Unlock()
+	if fake.DeleteClientStub != nil {
+		return fake.DeleteClientStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.deleteClientReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeUaaAPI) DeleteClientCallCount() int {
+	fake.deleteClientMutex.RLock()
+	defer fake.deleteClientMutex.RUnlock()
+	return len(fake.deleteClientArgsForCall)
+}
+
+func (fake *FakeUaaAPI) DeleteClientCalls(stub func(string) (*uaa.Client, error)) {
+	fake.deleteClientMutex.Lock()
+	defer fake.deleteClientMutex.Unlock()
+	fake.DeleteClientStub = stub
+}
+
+func (fake *FakeUaaAPI) DeleteClientArgsForCall(i int) string {
+	fake.deleteClientMutex.RLock()
+	defer fake.deleteClientMutex.RUnlock()
+	argsForCall := fake.deleteClientArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeUaaAPI) DeleteClientReturns(result1 *uaa.Client, result2 error) {
+	fake.deleteClientMutex.Lock()
+	defer fake.deleteClientMutex.Unlock()
+	fake.DeleteClientStub = nil
+	fake.deleteClientReturns = struct {
+		result1 *uaa.Client
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeUaaAPI) DeleteClientReturnsOnCall(i int, result1 *uaa.Client, result2 error) {
+	fake.deleteClientMutex.Lock()
+	defer fake.deleteClientMutex.Unlock()
+	fake.DeleteClientStub = nil
+	if fake.deleteClientReturnsOnCall == nil {
+		fake.deleteClientReturnsOnCall = make(map[int]struct {
+			result1 *uaa.Client
+			result2 error
+		})
+	}
+	fake.deleteClientReturnsOnCall[i] = struct {
 		result1 *uaa.Client
 		result2 error
 	}{result1, result2}
@@ -383,6 +459,8 @@ func (fake *FakeUaaAPI) Invocations() map[string][][]interface{} {
 	defer fake.changeClientSecretMutex.RUnlock()
 	fake.createClientMutex.RLock()
 	defer fake.createClientMutex.RUnlock()
+	fake.deleteClientMutex.RLock()
+	defer fake.deleteClientMutex.RUnlock()
 	fake.getClientMutex.RLock()
 	defer fake.getClientMutex.RUnlock()
 	fake.updateClientMutex.RLock()

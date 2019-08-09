@@ -3,6 +3,7 @@ package cmd
 import (
 	"io"
 	"os"
+	"strings"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/spf13/cobra"
@@ -29,12 +30,16 @@ type baseCmd struct {
 	out                  io.Writer
 	verbose              bool
 	targetClientIdentity string
+	uaaApiFactory        uaaApiFactory
+	credHubFactory       credHubFactory
 }
 
-func newBaseCmd(out io.Writer) baseCmd {
+func newBaseCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFactory, out io.Writer) baseCmd {
 	base := baseCmd{
-		out: out,
-		log: lager.NewLogger("uaa-crud"),
+		out:            out,
+		log:            lager.NewLogger("uaa-crud"),
+		uaaApiFactory:  uaaApiFactory,
+		credHubFactory: credHubFactory,
 	}
 
 	return base
@@ -63,5 +68,17 @@ func (b *baseCmd) PreRun(cmd *cobra.Command, args []string) {
 		b.log.RegisterSink(lager.NewWriterSink(b.out, lager.DEBUG))
 	} else {
 		b.log.RegisterSink(lager.NewWriterSink(b.out, lager.ERROR))
+	}
+	b.uaaConfig.endpoint = prependHttps(b.uaaConfig.endpoint)
+	b.credhubConfig.endpoint = prependHttps(b.credhubConfig.endpoint)
+}
+
+func prependHttps(url string) string {
+	if strings.HasPrefix(url, "http://") {
+		return strings.Replace(url, "http", "https", 1)
+	} else if strings.HasPrefix(url, "https://") {
+		return url
+	} else {
+		return "https://" + url
 	}
 }

@@ -2,10 +2,10 @@
 package interfacesfakes
 
 import (
-	sync "sync"
+	"sync"
 
-	permissions "code.cloudfoundry.org/credhub-cli/credhub/permissions"
-	interfaces "github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
+	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
+	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 )
 
 type FakeCredHubAPI struct {
@@ -21,6 +21,19 @@ type FakeCredHubAPI struct {
 		result2 error
 	}
 	addPermissionReturnsOnCall map[int]struct {
+		result1 *permissions.Permission
+		result2 error
+	}
+	DeletePermissionStub        func(string) (*permissions.Permission, error)
+	deletePermissionMutex       sync.RWMutex
+	deletePermissionArgsForCall []struct {
+		arg1 string
+	}
+	deletePermissionReturns struct {
+		result1 *permissions.Permission
+		result2 error
+	}
+	deletePermissionReturnsOnCall map[int]struct {
 		result1 *permissions.Permission
 		result2 error
 	}
@@ -123,6 +136,69 @@ func (fake *FakeCredHubAPI) AddPermissionReturnsOnCall(i int, result1 *permissio
 		})
 	}
 	fake.addPermissionReturnsOnCall[i] = struct {
+		result1 *permissions.Permission
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCredHubAPI) DeletePermission(arg1 string) (*permissions.Permission, error) {
+	fake.deletePermissionMutex.Lock()
+	ret, specificReturn := fake.deletePermissionReturnsOnCall[len(fake.deletePermissionArgsForCall)]
+	fake.deletePermissionArgsForCall = append(fake.deletePermissionArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("DeletePermission", []interface{}{arg1})
+	fake.deletePermissionMutex.Unlock()
+	if fake.DeletePermissionStub != nil {
+		return fake.DeletePermissionStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.deletePermissionReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeCredHubAPI) DeletePermissionCallCount() int {
+	fake.deletePermissionMutex.RLock()
+	defer fake.deletePermissionMutex.RUnlock()
+	return len(fake.deletePermissionArgsForCall)
+}
+
+func (fake *FakeCredHubAPI) DeletePermissionCalls(stub func(string) (*permissions.Permission, error)) {
+	fake.deletePermissionMutex.Lock()
+	defer fake.deletePermissionMutex.Unlock()
+	fake.DeletePermissionStub = stub
+}
+
+func (fake *FakeCredHubAPI) DeletePermissionArgsForCall(i int) string {
+	fake.deletePermissionMutex.RLock()
+	defer fake.deletePermissionMutex.RUnlock()
+	argsForCall := fake.deletePermissionArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeCredHubAPI) DeletePermissionReturns(result1 *permissions.Permission, result2 error) {
+	fake.deletePermissionMutex.Lock()
+	defer fake.deletePermissionMutex.Unlock()
+	fake.DeletePermissionStub = nil
+	fake.deletePermissionReturns = struct {
+		result1 *permissions.Permission
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCredHubAPI) DeletePermissionReturnsOnCall(i int, result1 *permissions.Permission, result2 error) {
+	fake.deletePermissionMutex.Lock()
+	defer fake.deletePermissionMutex.Unlock()
+	fake.DeletePermissionStub = nil
+	if fake.deletePermissionReturnsOnCall == nil {
+		fake.deletePermissionReturnsOnCall = make(map[int]struct {
+			result1 *permissions.Permission
+			result2 error
+		})
+	}
+	fake.deletePermissionReturnsOnCall[i] = struct {
 		result1 *permissions.Permission
 		result2 error
 	}{result1, result2}
@@ -268,6 +344,8 @@ func (fake *FakeCredHubAPI) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addPermissionMutex.RLock()
 	defer fake.addPermissionMutex.RUnlock()
+	fake.deletePermissionMutex.RLock()
+	defer fake.deletePermissionMutex.RUnlock()
 	fake.getPermissionByPathActorMutex.RLock()
 	defer fake.getPermissionByPathActorMutex.RUnlock()
 	fake.updatePermissionMutex.RLock()

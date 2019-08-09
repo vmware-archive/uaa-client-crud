@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 	"github.com/cloudfoundry-community/go-uaa"
 	"github.com/spf13/cobra"
 )
@@ -13,8 +12,6 @@ import (
 type clientCreateCmd struct {
 	baseCmd
 	newClientConfig uaaClientConfig
-	uaaApiFactory   UaaApiFactory
-	credHubFactory  CredHubFactory
 }
 
 type uaaClientConfig struct {
@@ -26,24 +23,12 @@ type uaaClientConfig struct {
 	clientTokenValidity int64
 }
 
-type UaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI
-
-func UaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
-	return interfaces.NewUaaApi(target, zoneID, adminClientIdentity, adminClientPwd)
-}
-
-type CredHubFactory func(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) interfaces.CredHubAPI
-
-func CredHubFactoryDefault(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) interfaces.CredHubAPI {
-	return interfaces.NewCredHubApi(target, skipTLS, clientID, clientPwd, uaaEndpoint)
-}
-
-func NewCreateClientCmd(uaaApiFactory UaaApiFactory, credHubFactory CredHubFactory, out io.Writer) *cobra.Command {
+func NewCreateClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFactory, out io.Writer) *cobra.Command {
 	cc := &clientCreateCmd{
-		newBaseCmd(out),
+		newBaseCmd(
+			uaaApiFactory,
+			credHubFactory, out),
 		uaaClientConfig{},
-		uaaApiFactory,
-		credHubFactory,
 	}
 
 	cmd := &cobra.Command{
@@ -124,7 +109,7 @@ func (cc *clientCreateCmd) run() error {
 
 	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
 		cc.log.Debug("Found CredHub config")
-		chAdmin := cc.credHubFactory(cc.credhubConfig.endpoint,
+		chAdmin, err := cc.credHubFactory(cc.credhubConfig.endpoint,
 			true,
 			cc.credhubConfig.clientID,
 			cc.credhubConfig.clientPwd,
