@@ -25,7 +25,7 @@ You may need to run `GO111MODULE=on go mod vendor` if getting errors with `make`
 
 ### Using
 
-####Running the BOSH Release
+#### Running the BOSH Release
 1. Update the [sample manifest](/bosh/manifests/sample-manifest.yaml).
 1. Update the [sample values](/bosh/manifests/values.yaml) with your product necessary scopes and identity to create.
 1. Run `make` to build the `uaa-crud.linux` and `uaa-crud.darwin` binaries.
@@ -41,7 +41,7 @@ bosh deploy -d uaa_crud ../manifests/sample-manifest.yaml -l ../manifests/values
 ```
 1. To delete the newly created UAA account run: `bosh run-errand uaa_delete -d uaa-crud`
 
-####CLI Only
+#### CLI Only
 1. Run `make` to build the `uaa-crud.linux` and `uaa-crud.darwin` binaries.
 
 1. Create Client: 
