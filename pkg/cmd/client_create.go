@@ -15,7 +15,7 @@ type clientCreateCmd struct {
 }
 
 type uaaClientConfig struct {
-	clientPwd        string
+	clientSecret     string
 	clientGrantTypes []string
 
 	clientScopes        []string
@@ -46,8 +46,8 @@ func NewCreateClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 
 	cc.addCommonFlags(cmd)
 
-	cmd.Flags().StringVarP(&cc.newClientConfig.clientPwd, "target-client-pwd", "w", "", "Target Client Password")
-	cmd.MarkFlagRequired("target-client-pwd")
+	cmd.Flags().StringVarP(&cc.newClientConfig.clientSecret, "target-client-secret", "w", "", "Target Client Secret")
+	cmd.MarkFlagRequired("target-client-secret")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientGrantTypes, "auth-grant-types", "g", []string{"client_credentials"}, "A comma separated list of Authorization Grant Types")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientScopes, "scopes", "s", []string{"uaa.none"}, "A comma separated list of UAA Scopes")
 	cmd.Flags().StringSliceVarP(&cc.newClientConfig.clientAuthorities, "authorities", "a", []string{""}, "A comma separated list of UAA Authorities")
@@ -60,7 +60,7 @@ func NewCreateClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 
 func (cc *clientCreateCmd) run() error {
 	// construct the API, and validate it
-	apiClient := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientPwd)
+	apiClient := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientSecret)
 
 	err := apiClient.Validate()
 	if err != nil {
@@ -72,7 +72,7 @@ func (cc *clientCreateCmd) run() error {
 
 	client := uaa.Client{
 		ClientID:             cc.targetClientIdentity,
-		ClientSecret:         cc.newClientConfig.clientPwd,
+		ClientSecret:         cc.newClientConfig.clientSecret,
 		AccessTokenValidity:  cc.newClientConfig.clientTokenValidity,
 		AuthorizedGrantTypes: cc.newClientConfig.clientGrantTypes,
 		Scope:                cc.newClientConfig.clientScopes,
@@ -107,12 +107,12 @@ func (cc *clientCreateCmd) run() error {
 		}
 	}
 
-	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientPwd != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
+	if cc.credhubConfig.endpoint != "" && cc.credhubConfig.clientID != "" && cc.credhubConfig.clientSecret != "" && cc.credhubConfig.credPermissions != nil && cc.credhubConfig.credPath != "" {
 		cc.log.Debug("Found CredHub config")
 		chAdmin, err := cc.credHubFactory(cc.credhubConfig.endpoint,
 			true,
 			cc.credhubConfig.clientID,
-			cc.credhubConfig.clientPwd,
+			cc.credhubConfig.clientSecret,
 			cc.uaaConfig.endpoint,
 		)
 

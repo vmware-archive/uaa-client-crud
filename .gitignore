@@ -1,5 +1,6 @@
 .idea
 /vendor
 /uaa-crud.linux
+/uaa-crud.darwin
 /bosh/uaa-crud-release/config
 

@@ -5,16 +5,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type uaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI
+type uaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI
 
-func uaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
-	return interfaces.NewUaaApi(target, zoneID, adminClientIdentity, adminClientPwd)
+func uaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI {
+	return interfaces.NewUaaApi(target, zoneID, adminClientIdentity, adminClientSecret)
 }
 
-type credHubFactory func(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) (interfaces.CredHubAPI, error)
+type credHubFactory func(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (interfaces.CredHubAPI, error)
 
-func credHubFactoryDefault(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
-	return interfaces.NewCredHubApi(target, skipTLS, clientID, clientPwd, uaaEndpoint)
+func credHubFactoryDefault(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
+	return interfaces.NewCredHubApi(target, skipTLS, clientID, clientSecret, uaaEndpoint)
 }
 
 func NewRootCmd(args []string) *cobra.Command {

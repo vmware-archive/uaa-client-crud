@@ -27,12 +27,12 @@ var _ = Describe("Client create", func() {
 	var fakeUaaClient *interfacesfakes.FakeUaaAPI
 	var fakeCredHubClient *interfacesfakes.FakeCredHubAPI
 
-	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
+	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI {
 		uaaEndpoint = target
 		return fakeUaaClient
 	}
 
-	credHubFactory := func(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
+	credHubFactory := func(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
 		credhubEndpoint = target
 		return fakeCredHubClient, nil
 	}
@@ -47,9 +47,9 @@ var _ = Describe("Client create", func() {
 		c = cmd.NewCreateClientCmd(uaaApiFactory, credHubFactory, out)
 		c.Flags().Set("uaa-endpoint", "bob")
 		c.Flags().Set("admin-identity", "monkey123")
-		c.Flags().Set("admin-pwd", "bob")
+		c.Flags().Set("admin-secret", "bob")
 		c.Flags().Set("target-client-identity", "monkey123")
-		c.Flags().Set("target-client-password", "p@ssw0rD")
+		c.Flags().Set("target-client-secret", "p@ssw0rD")
 		c.Flags().Set("authorities", "auth1, auth2")
 	})
 
@@ -61,7 +61,7 @@ var _ = Describe("Client create", func() {
 		fakeCredHubClient.AddPermissionReturns(nil, nil)
 
 		c.Flags().Set("credhub-identity", "bob")
-		c.Flags().Set("credhub-password", "monkey123")
+		c.Flags().Set("credhub-secret", "monkey123")
 		c.Flags().Set("credhub-endpoint", "bob")
 		c.Flags().Set("credential-path", "monkey123")
 		c.PreRun(c, []string{})
@@ -76,14 +76,14 @@ var _ = Describe("Client create", func() {
 	It("setting env vars for credhub are passed to clientCreate", func() {
 
 		os.Setenv("CREDHUB_CLIENT_ID", "notbob")
-		os.Setenv("CREDHUB_CLIENT_PASSWORD", "monkey123")
+		os.Setenv("CREDHUB_CLIENT_SECRET", "monkey123")
 		os.Setenv("CREDHUB_URL", "https://credhub.endpoint")
 		os.Setenv("CREDHUB_CRED_PATH", "/path")
 
 		cc := cmd.NewCreateClientCmd(uaaApiFactory, credHubFactory, out)
 
 		Expect(cc.Flag("credhub-identity").Value.String()).To(Equal("notbob"))
-		Expect(cc.Flag("credhub-password").Value.String()).To(Equal("monkey123"))
+		Expect(cc.Flag("credhub-secret").Value.String()).To(Equal("monkey123"))
 		Expect(cc.Flag("credhub-endpoint").Value.String()).To(Equal("https://credhub.endpoint"))
 		Expect(cc.Flag("credential-path").Value.String()).To(Equal("/path"))
 
@@ -97,7 +97,7 @@ var _ = Describe("Client create", func() {
 		fakeCredHubClient.AddPermissionReturns(nil, nil)
 
 		os.Setenv("CREDHUB_CLIENT_ID", "notbob")
-		os.Setenv("CREDHUB_CLIENT_PASSWORD", "monkey123")
+		os.Setenv("CREDHUB_CLIENT_SECRET", "monkey123")
 		os.Setenv("CREDHUB_URL", "credhub.endpoint")
 		os.Setenv("CREDHUB_CRED_PATH", "/path")
 

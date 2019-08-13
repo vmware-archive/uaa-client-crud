@@ -27,12 +27,12 @@ var _ = Describe("Client delete", func() {
 	var uaaEndpoint string
 	var credhubEndpoint string
 
-	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientPwd string) interfaces.UaaAPI {
+	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI {
 		uaaEndpoint = target
 		return fakeUaaClient
 	}
 
-	credHubFactory := func(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
+	credHubFactory := func(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
 		credhubEndpoint = target
 		return fakeCredHubClient, nil
 	}
@@ -59,7 +59,7 @@ var _ = Describe("Client delete", func() {
 		fakeCredHubClient.DeletePermissionReturns(&permissions.Permission{}, nil)
 
 		c.Flags().Set("credhub-identity", "bob")
-		c.Flags().Set("credhub-password", "monkey123")
+		c.Flags().Set("credhub-secret", "monkey123")
 		c.Flags().Set("credhub-endpoint", "bob")
 		c.Flags().Set("credential-path", "monkey123")
 
@@ -78,14 +78,14 @@ var _ = Describe("Client delete", func() {
 	It("setting env vars for credhub are passed to clientDelete", func() {
 
 		os.Setenv("CREDHUB_CLIENT_ID", "notbob")
-		os.Setenv("CREDHUB_CLIENT_PASSWORD", "monkey123")
+		os.Setenv("CREDHUB_CLIENT_SECRET", "monkey123")
 		os.Setenv("CREDHUB_URL", "https://credhub.endpoint")
 		os.Setenv("CREDHUB_CRED_PATH", "/path")
 
 		cc := cmd.NewDeleteClientCmd(uaaApiFactory, credHubFactory, out)
 
 		Expect(cc.Flag("credhub-identity").Value.String()).To(Equal("notbob"))
-		Expect(cc.Flag("credhub-password").Value.String()).To(Equal("monkey123"))
+		Expect(cc.Flag("credhub-secret").Value.String()).To(Equal("monkey123"))
 		Expect(cc.Flag("credhub-endpoint").Value.String()).To(Equal("https://credhub.endpoint"))
 		Expect(cc.Flag("credential-path").Value.String()).To(Equal("/path"))
 
@@ -99,7 +99,7 @@ var _ = Describe("Client delete", func() {
 		fakeCredHubClient.DeletePermissionReturns(&permissions.Permission{}, nil)
 
 		os.Setenv("CREDHUB_CLIENT_ID", "notbob")
-		os.Setenv("CREDHUB_CLIENT_PASSWORD", "monkey123")
+		os.Setenv("CREDHUB_CLIENT_SECRET", "monkey123")
 		os.Setenv("CREDHUB_URL", "credhub.endpoint")
 		os.Setenv("CREDHUB_CRED_PATH", "/path")
 

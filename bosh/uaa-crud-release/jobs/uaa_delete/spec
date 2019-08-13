@@ -12,13 +12,13 @@ properties:
     description: UAA Endpoint
   uaacrud.admin_identity:
     description: UAA Admin Username
-  uaacrud.admin_password:
-    description: UAA Admin Password
+  uaacrud.admin_secret:
+    description: UAA Admin Client Secret
   uaacrud.target_client_identity:
     description: Target Client Identity
   credhub.identity:
     description: Credhub Client Identity
-  credhub.password:
+  credhub.secret:
     description: Credhub Client Password
   credhub.endpoint:
     description: Credhub Endpoint

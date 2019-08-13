@@ -12,13 +12,13 @@ import (
 type uaaConfig struct {
 	endpoint            string
 	adminClientIdentity string
-	adminClientPwd      string
+	adminClientSecret   string
 }
 
 type credhubConfig struct {
 	endpoint        string
 	clientID        string
-	clientPwd       string
+	clientSecret    string
 	credPath        string
 	credPermissions []string
 }
@@ -51,13 +51,13 @@ func (b *baseCmd) addCommonFlags(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("uaa-endpoint")
 	cmd.Flags().StringVarP(&b.uaaConfig.adminClientIdentity, "admin-identity", "u", "", "UAA Admin Username")
 	cobra.MarkFlagRequired(cmd.Flags(), "admin-identity")
-	cmd.Flags().StringVarP(&b.uaaConfig.adminClientPwd, "admin-pwd", "p", "", "UAA Admin Password")
-	cobra.MarkFlagRequired(cmd.Flags(), "admin-pwd")
+	cmd.Flags().StringVarP(&b.uaaConfig.adminClientSecret, "admin-secret", "p", "", "UAA Admin Client Secret")
+	cobra.MarkFlagRequired(cmd.Flags(), "admin-secret")
 	cmd.Flags().StringVarP(&b.targetClientIdentity, "target-client-identity", "c", "", "Target Client Identity")
 	cobra.MarkFlagRequired(cmd.Flags(), "target-client-identity")
 
 	cmd.Flags().StringVar(&b.credhubConfig.clientID, "credhub-identity", os.Getenv("CREDHUB_CLIENT_ID"), "Credhub Client Identity if granting or revoking CredHub access")
-	cmd.Flags().StringVar(&b.credhubConfig.clientPwd, "credhub-password", os.Getenv("CREDHUB_CLIENT_PASSWORD"), "Credhub Client Password if granting or revoking CredHub access")
+	cmd.Flags().StringVar(&b.credhubConfig.clientSecret, "credhub-secret", os.Getenv("CREDHUB_CLIENT_SECRET"), "Credhub Client Password if granting or revoking CredHub access")
 	cmd.Flags().StringVar(&b.credhubConfig.endpoint, "credhub-endpoint", os.Getenv("CREDHUB_URL"), "CredHub endpoint URL")
 	cmd.Flags().StringVar(&b.credhubConfig.credPath, "credential-path", os.Getenv("CREDHUB_CRED_PATH"), "CredHub Credential Path")
 

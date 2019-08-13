@@ -33,7 +33,7 @@ func NewDeleteClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 func (cd *clientDeleteCmd) run() error {
 
 	// construct the API, and validate it
-	apiClient := cd.uaaApiFactory(cd.uaaConfig.endpoint, "", cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientPwd)
+	apiClient := cd.uaaApiFactory(cd.uaaConfig.endpoint, "", cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientSecret)
 	err := apiClient.Validate()
 	if err != nil {
 		cd.log.Error("", err)
@@ -51,12 +51,12 @@ func (cd *clientDeleteCmd) run() error {
 		cd.log.Debug("UAA client [" + cd.targetClientIdentity + "]. Skipping delete")
 	}
 
-	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientPwd != "" {
+	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientSecret != "" {
 
 		chAdmin, err := cd.credHubFactory(cd.credhubConfig.endpoint,
 			true,
 			cd.credhubConfig.clientID,
-			cd.credhubConfig.clientPwd,
+			cd.credhubConfig.clientSecret,
 			cd.uaaConfig.endpoint,
 		)
 

@@ -16,10 +16,16 @@ This repo is a CLI and BOSH Release that can create and delete a UAA client for 
 
 ### Developing
 
-Add this project to your gopath with: 
-`go get -u github.com/cf-platform-eng/uaa-client-crud` 
+Clone the project. No need to put it into the GOPATH, as this is using go modules.
 
-Enable gomod integration in Goland.
+Run `make bootstrap` to acquire dependencies for the project. 
+
+Install counterfeiter with
+```bash
+go get -u github.com/maxbrunsfeld/counterfeiter
+```
+
+Enable gomod integration in Goland (Preferences->Go->Go Modules).
 
 You may need to run `GO111MODULE=on go mod vendor` if getting errors with `make`
 
@@ -36,7 +42,7 @@ bosh add-blob ../../uaa-crud.linux uaa-crud.linux
 bosh create-release --name=uaa_crud --force --tarball=../uaa-crud-release.tgz
 bosh upload-release ../uaa-crud-release.tgz
 bosh upload-stemcell --sha1 712632e687388f335578956fceff27f0836646ae \
-  https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-xenial-go_agent?v=456.3
+  "https://bosh.io/d/stemcells/bosh-google-kvm-ubuntu-xenial-go_agent?v=456.3"
 bosh deploy -d uaa_crud ../manifests/sample-manifest.yaml -l ../manifests/values.yaml --recreate
 ```
 1. To delete the newly created UAA account run: `bosh run-errand uaa_delete -d uaa-crud`
@@ -47,27 +53,30 @@ bosh deploy -d uaa_crud ../manifests/sample-manifest.yaml -l ../manifests/values
 1. Create Client: 
 ```
 ./uaa-crud.darwin create --uaa-endpoint <uaa-url> --admin-identity <uaa-admin-username> \
---admin-pwd <uaa-admin-password> --auth-grant-types <list, of, grant, types> --authorities <list, of, authorities> \
---scopes <list, of, uaa, scopes> --target-client-identity <identity-to-create> --target-client-pwd <password-to-create> \
+--admin-pwd <uaa-admin-secret> --auth-grant-types <list, of, grant, types> --authorities <list, of, authorities> \
+--scopes <list, of, uaa, scopes> --target-client-identity <identity-to-create> --target-client-pwd <secret-to-create> \
 --token-validity <validity in seconds>
 ```
 
 * Optional flags to create CredHub permissions: 
 ```
 --credential-path <credhub-credential-path> --credhub-endpoint <credhub-url> \
---credhub-identity <credhub-admin-identity> --credhub-password <credhub-admin-password> --credhub-permissions <list, of, permissions>`
+--credhub-identity <credhub-admin-identity> --credhub-secret <credhub-admin-secret> --credhub-permissions <list, of, permissions>`
 
 ```
 1. Delete Client:
 ```
 ./uaa-crud.darwin delete --uaa-endpoint <uaa-url> --admin-identity <uaa-admin-username> \
---admin-pwd <uaa-admin-password> --target-client-identity <identity-to-delete>
+--admin-pwd <uaa-admin-secret> --target-client-identity <identity-to-delete>
 
 ```
 
 * Optional flags to delete CredHub permissions: 
 ```
 --credential-path <credhub-credential-path> --credhub-endpoint <credhub-url> \
---credhub-identity <credhub-admin-identity> --credhub-password <credhub-admin-password>`
+--credhub-identity <credhub-admin-identity> --credhub-secret <credhub-admin-secret>`
 
 ```
+
+#### Enhancements
+- [ ] Don't always skip SSL validation

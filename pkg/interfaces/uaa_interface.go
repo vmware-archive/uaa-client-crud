@@ -18,8 +18,8 @@ type UaaAPI interface {
 	DeleteClient(clientID string) (*uaa.Client, error)
 }
 
-func NewUaaApi(target string, zoneID string, adminClientIdentity string, adminClientPwd string) UaaAPI {
-	return &UaaApi{uaa.New(target, zoneID).WithClientCredentials(adminClientIdentity, adminClientPwd, uaa.JSONWebToken).WithSkipSSLValidation(true)}
+func NewUaaApi(target string, zoneID string, adminClientIdentity string, adminClientSecret string) UaaAPI {
+	return &UaaApi{uaa.New(target, zoneID).WithClientCredentials(adminClientIdentity, adminClientSecret, uaa.JSONWebToken).WithSkipSSLValidation(true)}
 }
 
 func (u *UaaApi) Validate() error {

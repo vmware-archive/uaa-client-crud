@@ -8,16 +8,16 @@ mkdir -p "$LOG_DIR"
 chown -R vcap:vcap "$LOG_DIR"
 
 export CREDHUB_CLIENT_ID=<%= p("credhub.identity") %>
-export CREDHUB_CLIENT_PASSWORD=<%= p("credhub.password") %>
+export CREDHUB_CLIENT_SECRET=<%= p("credhub.secret") %>
 export CREDHUB_URL=<%= p("credhub.endpoint") %>
 export CREDHUB_CRED_PATH=<%= p("credhub.credential_path") %>
 export CREDHUB_PERMISSIONS=<%= p("credhub.permissions") %>
 
 /var/vcap/jobs/uaa_create/packages/uaa_crud_pkg/uaa-crud.linux create --uaa-endpoint <%= p("uaacrud.endpoint") %> \
   --admin-identity <%= p("uaacrud.admin_identity") %> \
-  --admin-pwd <%= p("uaacrud.admin_password") %> \
+  --admin-secret <%= p("uaacrud.admin_secret") %> \
   --target-client-identity <%= p("uaacrud.target_client_identity") %> \
-  --target-client-pwd <%= p("uaacrud.target_client_password") %> \
+  --target-client-secret <%= p("uaacrud.target_client_secret") %> \
   --auth-grant-types "<%= p("uaacrud.client_grant_types") %>" \
   --scopes "<%= p("uaacrud.client_scopes") %>" \
   --authorities "<%= p("uaacrud.client_authorities") %>" \

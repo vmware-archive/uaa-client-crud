@@ -19,11 +19,11 @@ type CredHubAPI interface {
 	DeletePermission(uuid string) (*permissions.Permission, error)
 }
 
-func NewCredHubApi(target string, skipTLS bool, clientID string, clientPwd string, uaaEndpoint string) (CredHubAPI, error) {
+func NewCredHubApi(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (CredHubAPI, error) {
 
 	api, err := credhub.New(target,
 		credhub.SkipTLSValidation(skipTLS),
-		credhub.Auth(auth.UaaClientCredentials(clientID, clientPwd)),
+		credhub.Auth(auth.UaaClientCredentials(clientID, clientSecret)),
 		credhub.AuthURL(uaaEndpoint))
 	return &CredHubApi{api}, err
 }

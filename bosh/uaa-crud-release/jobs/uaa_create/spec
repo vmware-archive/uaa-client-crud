@@ -12,12 +12,12 @@ properties:
     description: UAA Endpoint
   uaacrud.admin_identity:
     description: UAA Admin Username
-  uaacrud.admin_password:
-    description: UAA Admin Password
+  uaacrud.admin_secret:
+    description: UAA Admin Client Secret
   uaacrud.target_client_identity:
     description: Target Client Identity
-  uaacrud.target_client_password:
-    description: Target Client Password
+  uaacrud.target_client_secret:
+    description: Target Client Secret
   uaacrud.client_grant_types:
     description: A comma separated list of Authorization Grant Types
     default: client_credentials
@@ -31,7 +31,7 @@ properties:
     default: 1800
   credhub.identity:
     description: Credhub Client Identity
-  credhub.password:
+  credhub.secret:
     description: Credhub Client Password
   credhub.endpoint:
     description: Credhub Endpoint
