@@ -4,6 +4,11 @@ name: uaa_delete
 templates:
   uaa_delete.erb: bin/run
 
+consumes:
+- name: credhub
+  type: credhub
+  optional: true
+
 packages:
   - uaa_crud_pkg
 
@@ -24,3 +29,6 @@ properties:
     description: Credhub Endpoint
   credhub.credential_path:
     description: Credhub Credential Path
+  credhub.port:
+    description: CredHub Endpoint Port
+    default: 8844
