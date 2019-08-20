@@ -7,11 +7,25 @@ mkdir -p "$LOG_DIR"
 
 chown -R vcap:vcap "$LOG_DIR"
 
-export CREDHUB_CLIENT_ID=<%= p("credhub.identity") %>
-export CREDHUB_CLIENT_SECRET=<%= p("credhub.secret") %>
-export CREDHUB_URL=<%= p("credhub.endpoint") %>
-export CREDHUB_CRED_PATH=<%= p("credhub.credential_path") %>
-export CREDHUB_PERMISSIONS=<%= p("credhub.permissions") %>
+export CREDHUB_CLIENT_ID=<%= p("credhub.identity", "") %>
+export CREDHUB_CLIENT_SECRET=<%= p("credhub.secret", "") %>
+export CREDHUB_CRED_PATH=<%= p("credhub.credential_path", "") %>
+export CREDHUB_PERMISSIONS=<%= p("credhub.permissions", "") %>
+
+export CREDHUB_URL=<%= link('credhub').instances[0].address %>
+
+if [ "$CREDHUB_URL" == "" ]; then
+<% if p("credhub.endpoint", "") != "" %>
+ export CREDHUB_URL=<%= p("credhub.endpoint") %>
+<% else %>
+echo "CredHub not configured"
+ <% end %>
+fi
+
+if [ "$CREDHUB_URL" != "" ]; then
+export CREDHUB_URL=$CREDHUB_URL:<%= p("credhub.port") %>
+echo "CredHub URL: $CREDHUB_URL"
+fi
 
 /var/vcap/jobs/uaa_create/packages/uaa_crud_pkg/uaa-crud.linux create --uaa-endpoint <%= p("uaacrud.endpoint") %> \
   --admin-identity <%= p("uaacrud.admin_identity") %> \

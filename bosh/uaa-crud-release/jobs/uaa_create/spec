@@ -4,6 +4,11 @@ name: uaa_create
 templates:
   pre-start.erb: bin/pre-start
 
+consumes:
+- name: credhub
+  type: credhub
+  optional: true
+
 packages:
   - uaa_crud_pkg
 
@@ -39,3 +44,6 @@ properties:
     description: Credhub Credential Path
   credhub.permissions:
     description: CredHub permissions to add to new UAA cc
+  credhub.port:
+    description: CredHub Endpoint Port
+    default: 8844
