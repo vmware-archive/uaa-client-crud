@@ -18,10 +18,10 @@ export CREDHUB_URL=<%= cred_link.instances[0].address %>
 
 if [ "$CREDHUB_URL" == "" ]; then
 <% if p("credhub.endpoint", "") != "" %>
- export CREDHUB_URL=<%= p("credhub.endpoint") %>
+export CREDHUB_URL=<%= p("credhub.endpoint") %>
 <% else %>
 echo "CredHub not configured"
- <% end %>
+<% end %>
 fi
 
 if [ "$CREDHUB_URL" != "" ]; then
