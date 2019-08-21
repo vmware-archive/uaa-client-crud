@@ -11,7 +11,9 @@ export CREDHUB_CLIENT_ID=<%= p("credhub.identity", "") %>
 export CREDHUB_CLIENT_SECRET=<%= p("credhub.secret", "") %>
 export CREDHUB_CRED_PATH=<%= p("credhub.credential_path", "") %>
 
-export CREDHUB_URL=<%= link('credhub').instances[0].address %>
+<% if_link("credhub") do |cred_link| %>
+export CREDHUB_URL=<%= cred_link.instances[0].address %>
+<% end %>
 
 if [ "$CREDHUB_URL" == "" ]; then
 <% if p("credhub.endpoint", "") != "" %>
