@@ -78,6 +78,8 @@ func prependHttps(url string) string {
 		return strings.Replace(url, "http", "https", 1)
 	} else if strings.HasPrefix(url, "https://") {
 		return url
+	} else if url == "" {
+		return url
 	} else {
 		return "https://" + url
 	}
