@@ -9,7 +9,7 @@ User Account and Authentication (UAA)
 
 UAA accounts have [scopes](https://docs.cloudfoundry.org/concepts/architecture/uaa.html#cc-scopes) that control 
 what the account is capable of accessing.
-Depending on what the partner product is doing, they may need only "cloud_controller.admin_read_only".
+Depending on what the partner product is doing, they may need only "cloud_controller.admin\_read\_only".
 Additional scopes may be necessary for things like storing bind credentials in CredHub. 
 
 This repo is a CLI and BOSH Release that can create and delete a UAA client for partner products to use.
