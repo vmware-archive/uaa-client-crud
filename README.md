@@ -53,8 +53,8 @@ bosh deploy -d uaa_crud ../manifests/sample-manifest.yaml -l ../manifests/values
 1. Create Client: 
 ```
 ./uaa-crud.darwin create --uaa-endpoint <uaa-url> --admin-identity <uaa-admin-username> \
---admin-pwd <uaa-admin-secret> --auth-grant-types <list, of, grant, types> --authorities <list, of, authorities> \
---scopes <list, of, uaa, scopes> --target-client-identity <identity-to-create> --target-client-pwd <secret-to-create> \
+--admin-secret <uaa-admin-secret> --auth-grant-types <list, of, grant, types> --authorities <list, of, authorities> \
+--scopes <list, of, uaa, scopes> --target-client-identity <identity-to-create> --target-client-secret <secret-to-create> \
 --token-validity <validity in seconds>
 ```
 
@@ -67,7 +67,7 @@ bosh deploy -d uaa_crud ../manifests/sample-manifest.yaml -l ../manifests/values
 1. Delete Client:
 ```
 ./uaa-crud.darwin delete --uaa-endpoint <uaa-url> --admin-identity <uaa-admin-username> \
---admin-pwd <uaa-admin-secret> --target-client-identity <identity-to-delete>
+--admin-secret <uaa-admin-secret> --target-client-identity <identity-to-delete>
 
 ```
 
