@@ -1,13 +1,19 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 type clientDeleteCmd struct {
 	baseCmd
+	targetClientSecret string
+	deleteCredhubPath  bool
 }
 
 func NewDeleteClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFactory, out io.Writer) *cobra.Command {
@@ -26,6 +32,9 @@ func NewDeleteClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 	}
 
 	cd.addCommonFlags(cmd)
+	deleteCredhubPath, _ := strconv.ParseBool(os.Getenv("DELETE_CREDHUB_PATH"))
+	cmd.Flags().BoolVar(&cd.deleteCredhubPath, "delete-credhub-path", deleteCredhubPath, "Delete all credentials in path")
+	cmd.Flags().StringVarP(&cd.targetClientSecret, "target-client-secret", "w", "", "Target Client Secret")
 
 	return cmd
 }
@@ -52,6 +61,33 @@ func (cd *clientDeleteCmd) run() error {
 	}
 
 	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientSecret != "" {
+
+		if cd.deleteCredhubPath {
+			chClient, err := cd.credHubFactory(cd.credhubConfig.endpoint,
+				true,
+				cd.targetClientIdentity,
+				cd.targetClientSecret,
+				cd.uaaConfig.endpoint,
+			)
+			if err != nil {
+				cd.log.Error(fmt.Sprintf("Failed to connect to credhub client for deleting credentials by path [%s]", cd.targetClientIdentity), err)
+				return err
+			}
+
+			results, err := chClient.FindByPath(strings.ReplaceAll(cd.credhubConfig.credPath, "*", ""))
+			if err != nil {
+				cd.log.Error(fmt.Sprintf("Failed to lookup credentials by path [%s]", cd.credhubConfig.credPath), err)
+				return err
+			}
+
+			for _, result := range results.Credentials {
+				err := chClient.DeleteCredential(result.Name)
+				if err != nil {
+					cd.log.Error(fmt.Sprintf("Failed to delete credential [%s]", result.Name), err)
+					return err
+				}
+			}
+		}
 
 		chAdmin, err := cd.credHubFactory(cd.credhubConfig.endpoint,
 			true,

@@ -4,6 +4,7 @@ package interfacesfakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/credhub-cli/credhub/credentials"
 	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 )
@@ -24,6 +25,17 @@ type FakeCredHubAPI struct {
 		result1 *permissions.Permission
 		result2 error
 	}
+	DeleteCredentialStub        func(string) error
+	deleteCredentialMutex       sync.RWMutex
+	deleteCredentialArgsForCall []struct {
+		arg1 string
+	}
+	deleteCredentialReturns struct {
+		result1 error
+	}
+	deleteCredentialReturnsOnCall map[int]struct {
+		result1 error
+	}
 	DeletePermissionStub        func(string) (*permissions.Permission, error)
 	deletePermissionMutex       sync.RWMutex
 	deletePermissionArgsForCall []struct {
@@ -35,6 +47,19 @@ type FakeCredHubAPI struct {
 	}
 	deletePermissionReturnsOnCall map[int]struct {
 		result1 *permissions.Permission
+		result2 error
+	}
+	FindByPathStub        func(string) (credentials.FindResults, error)
+	findByPathMutex       sync.RWMutex
+	findByPathArgsForCall []struct {
+		arg1 string
+	}
+	findByPathReturns struct {
+		result1 credentials.FindResults
+		result2 error
+	}
+	findByPathReturnsOnCall map[int]struct {
+		result1 credentials.FindResults
 		result2 error
 	}
 	GetPermissionByPathActorStub        func(string, string) (*permissions.Permission, error)
@@ -141,6 +166,66 @@ func (fake *FakeCredHubAPI) AddPermissionReturnsOnCall(i int, result1 *permissio
 	}{result1, result2}
 }
 
+func (fake *FakeCredHubAPI) DeleteCredential(arg1 string) error {
+	fake.deleteCredentialMutex.Lock()
+	ret, specificReturn := fake.deleteCredentialReturnsOnCall[len(fake.deleteCredentialArgsForCall)]
+	fake.deleteCredentialArgsForCall = append(fake.deleteCredentialArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("DeleteCredential", []interface{}{arg1})
+	fake.deleteCredentialMutex.Unlock()
+	if fake.DeleteCredentialStub != nil {
+		return fake.DeleteCredentialStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.deleteCredentialReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeCredHubAPI) DeleteCredentialCallCount() int {
+	fake.deleteCredentialMutex.RLock()
+	defer fake.deleteCredentialMutex.RUnlock()
+	return len(fake.deleteCredentialArgsForCall)
+}
+
+func (fake *FakeCredHubAPI) DeleteCredentialCalls(stub func(string) error) {
+	fake.deleteCredentialMutex.Lock()
+	defer fake.deleteCredentialMutex.Unlock()
+	fake.DeleteCredentialStub = stub
+}
+
+func (fake *FakeCredHubAPI) DeleteCredentialArgsForCall(i int) string {
+	fake.deleteCredentialMutex.RLock()
+	defer fake.deleteCredentialMutex.RUnlock()
+	argsForCall := fake.deleteCredentialArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeCredHubAPI) DeleteCredentialReturns(result1 error) {
+	fake.deleteCredentialMutex.Lock()
+	defer fake.deleteCredentialMutex.Unlock()
+	fake.DeleteCredentialStub = nil
+	fake.deleteCredentialReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeCredHubAPI) DeleteCredentialReturnsOnCall(i int, result1 error) {
+	fake.deleteCredentialMutex.Lock()
+	defer fake.deleteCredentialMutex.Unlock()
+	fake.DeleteCredentialStub = nil
+	if fake.deleteCredentialReturnsOnCall == nil {
+		fake.deleteCredentialReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteCredentialReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeCredHubAPI) DeletePermission(arg1 string) (*permissions.Permission, error) {
 	fake.deletePermissionMutex.Lock()
 	ret, specificReturn := fake.deletePermissionReturnsOnCall[len(fake.deletePermissionArgsForCall)]
@@ -200,6 +285,69 @@ func (fake *FakeCredHubAPI) DeletePermissionReturnsOnCall(i int, result1 *permis
 	}
 	fake.deletePermissionReturnsOnCall[i] = struct {
 		result1 *permissions.Permission
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCredHubAPI) FindByPath(arg1 string) (credentials.FindResults, error) {
+	fake.findByPathMutex.Lock()
+	ret, specificReturn := fake.findByPathReturnsOnCall[len(fake.findByPathArgsForCall)]
+	fake.findByPathArgsForCall = append(fake.findByPathArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("FindByPath", []interface{}{arg1})
+	fake.findByPathMutex.Unlock()
+	if fake.FindByPathStub != nil {
+		return fake.FindByPathStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.findByPathReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeCredHubAPI) FindByPathCallCount() int {
+	fake.findByPathMutex.RLock()
+	defer fake.findByPathMutex.RUnlock()
+	return len(fake.findByPathArgsForCall)
+}
+
+func (fake *FakeCredHubAPI) FindByPathCalls(stub func(string) (credentials.FindResults, error)) {
+	fake.findByPathMutex.Lock()
+	defer fake.findByPathMutex.Unlock()
+	fake.FindByPathStub = stub
+}
+
+func (fake *FakeCredHubAPI) FindByPathArgsForCall(i int) string {
+	fake.findByPathMutex.RLock()
+	defer fake.findByPathMutex.RUnlock()
+	argsForCall := fake.findByPathArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeCredHubAPI) FindByPathReturns(result1 credentials.FindResults, result2 error) {
+	fake.findByPathMutex.Lock()
+	defer fake.findByPathMutex.Unlock()
+	fake.FindByPathStub = nil
+	fake.findByPathReturns = struct {
+		result1 credentials.FindResults
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCredHubAPI) FindByPathReturnsOnCall(i int, result1 credentials.FindResults, result2 error) {
+	fake.findByPathMutex.Lock()
+	defer fake.findByPathMutex.Unlock()
+	fake.FindByPathStub = nil
+	if fake.findByPathReturnsOnCall == nil {
+		fake.findByPathReturnsOnCall = make(map[int]struct {
+			result1 credentials.FindResults
+			result2 error
+		})
+	}
+	fake.findByPathReturnsOnCall[i] = struct {
+		result1 credentials.FindResults
 		result2 error
 	}{result1, result2}
 }
@@ -344,8 +492,12 @@ func (fake *FakeCredHubAPI) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addPermissionMutex.RLock()
 	defer fake.addPermissionMutex.RUnlock()
+	fake.deleteCredentialMutex.RLock()
+	defer fake.deleteCredentialMutex.RUnlock()
 	fake.deletePermissionMutex.RLock()
 	defer fake.deletePermissionMutex.RUnlock()
+	fake.findByPathMutex.RLock()
+	defer fake.findByPathMutex.RUnlock()
 	fake.getPermissionByPathActorMutex.RLock()
 	defer fake.getPermissionByPathActorMutex.RUnlock()
 	fake.updatePermissionMutex.RLock()
