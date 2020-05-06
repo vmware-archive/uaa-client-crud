@@ -53,8 +53,6 @@ func (cd *clientDeleteCmd) run() error {
 				return err
 			}
 
-			cd.log.Debug(fmt.Sprintf("Ch Client info: [%s]", chClient.PrintCredhub()))
-
 			deletePath := strings.ReplaceAll(cd.credhubConfig.credPath, "*", "")
 			credPaths, err := chClient.FindByPath(deletePath)
 			if err != nil {
@@ -63,6 +61,7 @@ func (cd *clientDeleteCmd) run() error {
 			}
 
 			for _, credPath := range credPaths {
+				cd.log.Debug(fmt.Sprintf("Deleting credential [%s]", credPath))
 				err := chClient.DeleteCredential(credPath)
 				if err != nil {
 					cd.log.Error(fmt.Sprintf("Failed to delete credential [%s]", credPath), err)

@@ -75,16 +75,6 @@ type FakeCredHubAPI struct {
 		result1 *permissions.Permission
 		result2 error
 	}
-	PrintCredhubStub        func() string
-	printCredhubMutex       sync.RWMutex
-	printCredhubArgsForCall []struct {
-	}
-	printCredhubReturns struct {
-		result1 string
-	}
-	printCredhubReturnsOnCall map[int]struct {
-		result1 string
-	}
 	UpdatePermissionStub        func(string, string, string, []string) (*permissions.Permission, error)
 	updatePermissionMutex       sync.RWMutex
 	updatePermissionArgsForCall []struct {
@@ -425,58 +415,6 @@ func (fake *FakeCredHubAPI) GetPermissionByPathActorReturnsOnCall(i int, result1
 	}{result1, result2}
 }
 
-func (fake *FakeCredHubAPI) PrintCredhub() string {
-	fake.printCredhubMutex.Lock()
-	ret, specificReturn := fake.printCredhubReturnsOnCall[len(fake.printCredhubArgsForCall)]
-	fake.printCredhubArgsForCall = append(fake.printCredhubArgsForCall, struct {
-	}{})
-	fake.recordInvocation("PrintCredhub", []interface{}{})
-	fake.printCredhubMutex.Unlock()
-	if fake.PrintCredhubStub != nil {
-		return fake.PrintCredhubStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	fakeReturns := fake.printCredhubReturns
-	return fakeReturns.result1
-}
-
-func (fake *FakeCredHubAPI) PrintCredhubCallCount() int {
-	fake.printCredhubMutex.RLock()
-	defer fake.printCredhubMutex.RUnlock()
-	return len(fake.printCredhubArgsForCall)
-}
-
-func (fake *FakeCredHubAPI) PrintCredhubCalls(stub func() string) {
-	fake.printCredhubMutex.Lock()
-	defer fake.printCredhubMutex.Unlock()
-	fake.PrintCredhubStub = stub
-}
-
-func (fake *FakeCredHubAPI) PrintCredhubReturns(result1 string) {
-	fake.printCredhubMutex.Lock()
-	defer fake.printCredhubMutex.Unlock()
-	fake.PrintCredhubStub = nil
-	fake.printCredhubReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeCredHubAPI) PrintCredhubReturnsOnCall(i int, result1 string) {
-	fake.printCredhubMutex.Lock()
-	defer fake.printCredhubMutex.Unlock()
-	fake.PrintCredhubStub = nil
-	if fake.printCredhubReturnsOnCall == nil {
-		fake.printCredhubReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.printCredhubReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeCredHubAPI) UpdatePermission(arg1 string, arg2 string, arg3 string, arg4 []string) (*permissions.Permission, error) {
 	var arg4Copy []string
 	if arg4 != nil {
@@ -561,8 +499,6 @@ func (fake *FakeCredHubAPI) Invocations() map[string][][]interface{} {
 	defer fake.findByPathMutex.RUnlock()
 	fake.getPermissionByPathActorMutex.RLock()
 	defer fake.getPermissionByPathActorMutex.RUnlock()
-	fake.printCredhubMutex.RLock()
-	defer fake.printCredhubMutex.RUnlock()
 	fake.updatePermissionMutex.RLock()
 	defer fake.updatePermissionMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
