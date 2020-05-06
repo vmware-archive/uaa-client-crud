@@ -4,7 +4,6 @@ package interfacesfakes
 import (
 	"sync"
 
-	"code.cloudfoundry.org/credhub-cli/credhub/credentials"
 	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
 	"github.com/cf-platform-eng/uaa-client-crud/pkg/interfaces"
 )
@@ -49,17 +48,17 @@ type FakeCredHubAPI struct {
 		result1 *permissions.Permission
 		result2 error
 	}
-	FindByPathStub        func(string) (credentials.FindResults, error)
+	FindByPathStub        func(string) ([]string, error)
 	findByPathMutex       sync.RWMutex
 	findByPathArgsForCall []struct {
 		arg1 string
 	}
 	findByPathReturns struct {
-		result1 credentials.FindResults
+		result1 []string
 		result2 error
 	}
 	findByPathReturnsOnCall map[int]struct {
-		result1 credentials.FindResults
+		result1 []string
 		result2 error
 	}
 	GetPermissionByPathActorStub        func(string, string) (*permissions.Permission, error)
@@ -289,7 +288,7 @@ func (fake *FakeCredHubAPI) DeletePermissionReturnsOnCall(i int, result1 *permis
 	}{result1, result2}
 }
 
-func (fake *FakeCredHubAPI) FindByPath(arg1 string) (credentials.FindResults, error) {
+func (fake *FakeCredHubAPI) FindByPath(arg1 string) ([]string, error) {
 	fake.findByPathMutex.Lock()
 	ret, specificReturn := fake.findByPathReturnsOnCall[len(fake.findByPathArgsForCall)]
 	fake.findByPathArgsForCall = append(fake.findByPathArgsForCall, struct {
@@ -313,7 +312,7 @@ func (fake *FakeCredHubAPI) FindByPathCallCount() int {
 	return len(fake.findByPathArgsForCall)
 }
 
-func (fake *FakeCredHubAPI) FindByPathCalls(stub func(string) (credentials.FindResults, error)) {
+func (fake *FakeCredHubAPI) FindByPathCalls(stub func(string) ([]string, error)) {
 	fake.findByPathMutex.Lock()
 	defer fake.findByPathMutex.Unlock()
 	fake.FindByPathStub = stub
@@ -326,28 +325,28 @@ func (fake *FakeCredHubAPI) FindByPathArgsForCall(i int) string {
 	return argsForCall.arg1
 }
 
-func (fake *FakeCredHubAPI) FindByPathReturns(result1 credentials.FindResults, result2 error) {
+func (fake *FakeCredHubAPI) FindByPathReturns(result1 []string, result2 error) {
 	fake.findByPathMutex.Lock()
 	defer fake.findByPathMutex.Unlock()
 	fake.FindByPathStub = nil
 	fake.findByPathReturns = struct {
-		result1 credentials.FindResults
+		result1 []string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeCredHubAPI) FindByPathReturnsOnCall(i int, result1 credentials.FindResults, result2 error) {
+func (fake *FakeCredHubAPI) FindByPathReturnsOnCall(i int, result1 []string, result2 error) {
 	fake.findByPathMutex.Lock()
 	defer fake.findByPathMutex.Unlock()
 	fake.FindByPathStub = nil
 	if fake.findByPathReturnsOnCall == nil {
 		fake.findByPathReturnsOnCall = make(map[int]struct {
-			result1 credentials.FindResults
+			result1 []string
 			result2 error
 		})
 	}
 	fake.findByPathReturnsOnCall[i] = struct {
-		result1 credentials.FindResults
+		result1 []string
 		result2 error
 	}{result1, result2}
 }

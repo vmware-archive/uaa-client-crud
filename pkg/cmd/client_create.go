@@ -60,9 +60,7 @@ func NewCreateClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 
 func (cc *clientCreateCmd) run() error {
 	// construct the API, and validate it
-	apiClient := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientSecret)
-
-	err := apiClient.Validate()
+	apiClient, err := cc.uaaApiFactory(cc.uaaConfig.endpoint, "", cc.uaaConfig.adminClientIdentity, cc.uaaConfig.adminClientSecret)
 	if err != nil {
 		cc.log.Error("Error validating UUA API client", err)
 		return err

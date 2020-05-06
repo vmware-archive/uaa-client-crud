@@ -40,26 +40,6 @@ func NewDeleteClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 }
 
 func (cd *clientDeleteCmd) run() error {
-
-	// construct the API, and validate it
-	apiClient := cd.uaaApiFactory(cd.uaaConfig.endpoint, "", cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientSecret)
-	err := apiClient.Validate()
-	if err != nil {
-		cd.log.Error("", err)
-	}
-	_, err = apiClient.GetClient(cd.targetClientIdentity)
-	if err == nil {
-		_, err = apiClient.DeleteClient(cd.targetClientIdentity)
-		if err != nil {
-			cd.log.Error("Failed to delete UAA client ["+cd.targetClientIdentity+"]", err)
-			return err
-		} else {
-			cd.log.Debug("UAA client [" + cd.targetClientIdentity + "] deleted")
-		}
-	} else {
-		cd.log.Debug("UAA client [" + cd.targetClientIdentity + "]. Skipping delete")
-	}
-
 	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientSecret != "" {
 
 		if cd.deleteCredhubPath {
@@ -74,16 +54,19 @@ func (cd *clientDeleteCmd) run() error {
 				return err
 			}
 
-			results, err := chClient.FindByPath(strings.ReplaceAll(cd.credhubConfig.credPath, "*", ""))
+			cd.log.Debug(fmt.Sprintf("Ch Client [%+v]", chClient))
+
+			deletePath := strings.ReplaceAll(cd.credhubConfig.credPath, "*", "")
+			credPaths, err := chClient.FindByPath(deletePath)
 			if err != nil {
-				cd.log.Error(fmt.Sprintf("Failed to lookup credentials by path [%s]", cd.credhubConfig.credPath), err)
+				cd.log.Error(fmt.Sprintf("Failed to lookup credentials by path [%s]", deletePath), err)
 				return err
 			}
 
-			for _, result := range results.Credentials {
-				err := chClient.DeleteCredential(result.Name)
+			for _, credPath := range credPaths {
+				err := chClient.DeleteCredential(credPath)
 				if err != nil {
-					cd.log.Error(fmt.Sprintf("Failed to delete credential [%s]", result.Name), err)
+					cd.log.Error(fmt.Sprintf("Failed to delete credential [%s]", credPath), err)
 					return err
 				}
 			}
@@ -115,5 +98,25 @@ func (cd *clientDeleteCmd) run() error {
 		}
 
 	}
+
+	apiClient, err := cd.uaaApiFactory(cd.uaaConfig.endpoint, "", cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientSecret)
+	if err != nil {
+		cd.log.Error("Error validation UAA API client", err)
+	}
+
+	_, err = apiClient.GetClient(cd.targetClientIdentity)
+	if err == nil {
+		_, err = apiClient.DeleteClient(cd.targetClientIdentity)
+		if err != nil {
+			cd.log.Error("Failed to delete UAA client ["+cd.targetClientIdentity+"]", err)
+			return err
+		} else {
+			cd.log.Debug("UAA client [" + cd.targetClientIdentity + "] deleted")
+		}
+	} else {
+		cd.log.Error(fmt.Sprintf("Unable to Get UAA client [%s]", cd.targetClientIdentity), err)
+		cd.log.Debug("UAA client [" + cd.targetClientIdentity + "]. Skipping delete")
+	}
+
 	return nil
 }

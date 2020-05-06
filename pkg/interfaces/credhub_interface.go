@@ -3,7 +3,6 @@ package interfaces
 import (
 	"code.cloudfoundry.org/credhub-cli/credhub"
 	"code.cloudfoundry.org/credhub-cli/credhub/auth"
-	"code.cloudfoundry.org/credhub-cli/credhub/credentials"
 	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
 )
 
@@ -19,7 +18,7 @@ type CredHubAPI interface {
 	UpdatePermission(uuid string, path string, actor string, ops []string) (*permissions.Permission, error)
 	DeletePermission(uuid string) (*permissions.Permission, error)
 	DeleteCredential(name string) error
-	FindByPath(path string) (credentials.FindResults, error)
+	FindByPath(path string) ([]string, error)
 }
 
 func NewCredHubApi(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (CredHubAPI, error) {
@@ -51,6 +50,14 @@ func (c *CredHubApi) DeleteCredential(name string) error {
 	return c.CredHub.Delete(name)
 }
 
-func (c *CredHubApi) FindByPath(path string) (credentials.FindResults, error) {
-	return c.CredHub.FindByPath(path)
+func (c *CredHubApi) FindByPath(path string) ([]string, error) {
+	results, err := c.CredHub.FindByPath(path)
+	if err != nil {
+		return nil, err
+	}
+	var credpaths []string
+	for _, result := range results.Credentials {
+		credpaths = append(credpaths, result.Name)
+	}
+	return credpaths, nil
 }

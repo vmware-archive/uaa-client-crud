@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"os"
 
-	"code.cloudfoundry.org/credhub-cli/credhub/credentials"
-
 	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
 	"github.com/cloudfoundry-community/go-uaa"
 
@@ -29,9 +27,9 @@ var _ = Describe("Client delete", func() {
 	var uaaEndpoint string
 	var credhubEndpoint string
 
-	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI {
+	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) (interfaces.UaaAPI, error) {
 		uaaEndpoint = target
-		return fakeUaaClient
+		return fakeUaaClient, nil
 	}
 
 	credHubFactory := func(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
@@ -83,13 +81,7 @@ var _ = Describe("Client delete", func() {
 		fakeUaaClient.DeleteClientReturns(&uaa.Client{}, nil)
 		fakeCredHubClient.GetPermissionByPathActorReturns(&permissions.Permission{UUID: "123"}, nil)
 		fakeCredHubClient.DeletePermissionReturns(&permissions.Permission{}, nil)
-		fakeCredHubClient.FindByPathReturns(credentials.FindResults{
-			Credentials: []credentials.Base{{
-				Name:             "/c/ksm/blah",
-				VersionCreatedAt: "",
-			},
-			},
-		}, nil)
+		fakeCredHubClient.FindByPathReturns([]string{"/c/ksm/some-cred"}, nil)
 
 		c.Flags().Set("credhub-identity", "bob")
 		c.Flags().Set("credhub-secret", "monkey123")

@@ -27,9 +27,9 @@ var _ = Describe("Client create", func() {
 	var fakeUaaClient *interfacesfakes.FakeUaaAPI
 	var fakeCredHubClient *interfacesfakes.FakeCredHubAPI
 
-	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI {
+	uaaApiFactory := func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) (interfaces.UaaAPI, error) {
 		uaaEndpoint = target
-		return fakeUaaClient
+		return fakeUaaClient, nil
 	}
 
 	credHubFactory := func(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (interfaces.CredHubAPI, error) {
