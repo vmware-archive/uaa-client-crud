@@ -10,7 +10,6 @@ type UaaApi struct {
 
 //go:generate counterfeiter ./ UaaAPI
 type UaaAPI interface {
-	Validate() error
 	GetClient(clientID string) (*uaa.Client, error)
 	CreateClient(client uaa.Client) (*uaa.Client, error)
 	ChangeClientSecret(id string, newSecret string) error
@@ -18,12 +17,12 @@ type UaaAPI interface {
 	DeleteClient(clientID string) (*uaa.Client, error)
 }
 
-func NewUaaApi(target string, zoneID string, adminClientIdentity string, adminClientSecret string) UaaAPI {
-	return &UaaApi{uaa.New(target, zoneID).WithClientCredentials(adminClientIdentity, adminClientSecret, uaa.JSONWebToken).WithSkipSSLValidation(true)}
-}
-
-func (u *UaaApi) Validate() error {
-	return u.UaaApi.Validate()
+func NewUaaApi(target string, zoneID string, adminClientIdentity string, adminClientSecret string) (UaaAPI, error) {
+	newAPI, err := uaa.New(target, uaa.WithClientCredentials(adminClientIdentity, adminClientSecret, uaa.JSONWebToken))
+	if err != nil {
+		return nil, err
+	}
+	return &UaaApi{newAPI}, nil
 }
 
 func (u *UaaApi) GetClient(clientId string) (*uaa.Client, error) {

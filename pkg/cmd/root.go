@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type uaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI
+type uaaApiFactory func(target string, zoneID string, adminClientIdentity string, adminClientSecret string) (interfaces.UaaAPI, error)
 
-func uaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientSecret string) interfaces.UaaAPI {
+func uaaApiFactoryDefault(target string, zoneID string, adminClientIdentity string, adminClientSecret string) (interfaces.UaaAPI, error) {
 	return interfaces.NewUaaApi(target, zoneID, adminClientIdentity, adminClientSecret)
 }
 

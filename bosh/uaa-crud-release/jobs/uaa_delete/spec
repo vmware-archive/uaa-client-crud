@@ -21,6 +21,8 @@ properties:
     description: UAA Admin Client Secret
   uaacrud.target_client_identity:
     description: Target Client Identity
+  uaacrud.target_client_secret:
+    description: Target Client Secret
   credhub.identity:
     description: Credhub Client Identity
   credhub.secret:
@@ -29,6 +31,9 @@ properties:
     description: Credhub Endpoint
   credhub.credential_path:
     description: Credhub Credential Path
+  credhub.delete_credential_path:
+    description: Delete Credential Path
+    default: false
   credhub.port:
     description: CredHub Endpoint Port
     default: 8844
