@@ -4,6 +4,7 @@ import (
 	"code.cloudfoundry.org/credhub-cli/credhub"
 	"code.cloudfoundry.org/credhub-cli/credhub/auth"
 	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
+	"fmt"
 )
 
 type CredHubApi struct {
@@ -19,6 +20,7 @@ type CredHubAPI interface {
 	DeletePermission(uuid string) (*permissions.Permission, error)
 	DeleteCredential(name string) error
 	FindByPath(path string) ([]string, error)
+	PrintCredhub() string
 }
 
 func NewCredHubApi(target string, skipTLS bool, clientID string, clientSecret string, uaaEndpoint string) (CredHubAPI, error) {
@@ -60,4 +62,10 @@ func (c *CredHubApi) FindByPath(path string) ([]string, error) {
 		credpaths = append(credpaths, result.Name)
 	}
 	return credpaths, nil
+}
+
+func (c *CredHubApi) PrintCredhub() string {
+	return fmt.Sprintf("Credhub info: [%+v]\n "+
+		"Credhub auth: [%+v] \n"+
+		"Credhub API URL: [%+v]", c.CredHub.Info(), c.CredHub.Auth, c.CredHub.ApiURL)
 }

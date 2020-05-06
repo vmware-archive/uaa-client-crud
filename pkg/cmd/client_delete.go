@@ -41,7 +41,6 @@ func NewDeleteClientCmd(uaaApiFactory uaaApiFactory, credHubFactory credHubFacto
 
 func (cd *clientDeleteCmd) run() error {
 	if cd.credhubConfig.endpoint != "" && cd.credhubConfig.clientID != "" && cd.credhubConfig.credPath != "" && cd.credhubConfig.clientSecret != "" {
-
 		if cd.deleteCredhubPath {
 			chClient, err := cd.credHubFactory(cd.credhubConfig.endpoint,
 				true,
@@ -54,7 +53,7 @@ func (cd *clientDeleteCmd) run() error {
 				return err
 			}
 
-			cd.log.Debug(fmt.Sprintf("Ch Client [%+v]", chClient))
+			cd.log.Debug(fmt.Sprintf("Ch Client info: [%s]", chClient.PrintCredhub()))
 
 			deletePath := strings.ReplaceAll(cd.credhubConfig.credPath, "*", "")
 			credPaths, err := chClient.FindByPath(deletePath)
@@ -78,7 +77,6 @@ func (cd *clientDeleteCmd) run() error {
 			cd.credhubConfig.clientSecret,
 			cd.uaaConfig.endpoint,
 		)
-
 		if err != nil {
 			cd.log.Error("Failed to connect to CredHub", err)
 			return err
@@ -86,7 +84,7 @@ func (cd *clientDeleteCmd) run() error {
 
 		permission, err := chAdmin.GetPermissionByPathActor(cd.credhubConfig.credPath, "uaa-client:"+cd.targetClientIdentity)
 		if err != nil {
-			cd.log.Debug("Failed to get permission object from CredHub. Skipping delete")
+			cd.log.Debug(fmt.Sprintf("Failed to get permission object from CredHub with error [%s]. Skipping delete", err.Error()))
 		} else {
 			_, err = chAdmin.DeletePermission(permission.UUID)
 			if err != nil {
@@ -96,27 +94,27 @@ func (cd *clientDeleteCmd) run() error {
 				cd.log.Debug("CredHub permission deleted")
 			}
 		}
-
 	}
 
 	apiClient, err := cd.uaaApiFactory(cd.uaaConfig.endpoint, "", cd.uaaConfig.adminClientIdentity, cd.uaaConfig.adminClientSecret)
 	if err != nil {
 		cd.log.Error("Error validation UAA API client", err)
+		return err
 	}
 
 	_, err = apiClient.GetClient(cd.targetClientIdentity)
-	if err == nil {
-		_, err = apiClient.DeleteClient(cd.targetClientIdentity)
-		if err != nil {
-			cd.log.Error("Failed to delete UAA client ["+cd.targetClientIdentity+"]", err)
-			return err
-		} else {
-			cd.log.Debug("UAA client [" + cd.targetClientIdentity + "] deleted")
-		}
-	} else {
+	if err != nil {
 		cd.log.Error(fmt.Sprintf("Unable to Get UAA client [%s]", cd.targetClientIdentity), err)
 		cd.log.Debug("UAA client [" + cd.targetClientIdentity + "]. Skipping delete")
+		return nil
 	}
 
+	_, err = apiClient.DeleteClient(cd.targetClientIdentity)
+	if err != nil {
+		cd.log.Error("Failed to delete UAA client ["+cd.targetClientIdentity+"]", err)
+		return err
+	}
+
+	cd.log.Debug("UAA client [" + cd.targetClientIdentity + "] deleted")
 	return nil
 }
