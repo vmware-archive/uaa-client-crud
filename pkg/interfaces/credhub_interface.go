@@ -1,10 +1,11 @@
 package interfaces
 
 import (
+	"fmt"
+
 	"code.cloudfoundry.org/credhub-cli/credhub"
 	"code.cloudfoundry.org/credhub-cli/credhub/auth"
 	"code.cloudfoundry.org/credhub-cli/credhub/permissions"
-	"fmt"
 )
 
 type CredHubApi struct {
@@ -65,7 +66,12 @@ func (c *CredHubApi) FindByPath(path string) ([]string, error) {
 }
 
 func (c *CredHubApi) PrintCredhub() string {
+	info, err := c.CredHub.Info()
+	if err != nil {
+		return fmt.Sprintf("error [%s]", err.Error())
+	}
+
 	return fmt.Sprintf("Credhub info: [%+v]\n "+
 		"Credhub auth: [%+v] \n"+
-		"Credhub API URL: [%+v]", c.CredHub.Info(), c.CredHub.Auth, c.CredHub.ApiURL)
+		"Credhub API URL: [%+v]", info, c.CredHub.Auth, c.CredHub.ApiURL)
 }
