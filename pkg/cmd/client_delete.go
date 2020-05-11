@@ -53,7 +53,11 @@ func (cd *clientDeleteCmd) run() error {
 				return err
 			}
 
-			deletePath := strings.ReplaceAll(cd.credhubConfig.credPath, "*", "")
+			deletePath := cd.credhubConfig.credPath
+			if strings.HasSuffix(cd.credhubConfig.credPath, "*") {
+				deletePath = strings.TrimRight(cd.credhubConfig.credPath, "*")
+			}
+
 			credPaths, err := chClient.FindByPath(deletePath)
 			if err != nil {
 				cd.log.Error(fmt.Sprintf("Failed to lookup credentials by path [%s]", deletePath), err)
