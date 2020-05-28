@@ -1,7 +1,7 @@
 # UAA Client Crud Sample Tile
 
 This sample-tile directory demonstrates the use of uaa-client-crud
-in the context of a (Tanzu Ops Manager)[https://docs.pivotal.io/platform/2-9/installing/pcf-docs.html] tile. 
+in the context of a [Tanzu Ops Manager](https://docs.pivotal.io/platform/2-9/installing/pcf-docs.html) tile. 
 
 ## Prerequisites
 [Tile Generator](https://docs.pivotal.io/tiledev/2-6/tile-generator.html) is used
