@@ -1,0 +1,91 @@
+---
+name: uaa-client-crud-demo
+icon_file: resources/icon.png
+label: UAA Client CRUD Demo
+description: Tile for demonstrating uaa-client-crud
+
+properties:
+- name: uaa_client_secret
+  type: secret
+  label: Secret Access Key
+  configurable: false
+
+- name: bosh_uaa_client_name
+  type: string
+  configurable: false
+  default: (( $self.uaa_client_name ))
+
+- name: bosh_uaa_client_secret
+  type: string
+  configurable: false
+  default: (( $self.uaa_client_secret ))
+
+packages:
+  - name: uaa_crud
+    type: bosh-release
+    path: resources/uaa-crud-release.tgz
+    jobs:
+    - name: create
+      templates:
+      - name: uaa_create
+        release: uaa_crud
+        consumes:
+          credhub:
+            from: credhub
+            deployment: (( ..cf.deployment_name ))
+      memory: 1024
+      ephemeral_disk: 4096
+      persistent_disk: 4096
+      instances: (( .properties.app_instances.value ))
+      instances: 1
+      cpu: 1
+      static_ip: 0
+      dynamic_ip: 1
+      default_internet_connected: false
+      max_in_flight: 1
+      properties:
+        uaacrud:
+          endpoint: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+          admin_identity: (( ..cf.uaa.tile_installer_client_credentials.identity ))
+          admin_secret: (( ..cf.uaa.tile_installer_client_credentials.password ))
+          target_client_identity: uaa-client-identity
+          target_client_secret: ((.properties.uaa_client_secret.value))
+          client_grant_types: "client_credentials, refresh_token"
+          client_scopes: "openid,oauth.approvals,credhub.read,credhub.write"
+          client_authorities: "oauth.login,credhub.read,credhub.write"
+          token_validity: 10000
+        # credhub:
+        #     identity: ((..cf.uaa.tile_installer_client_credentials.identity))
+        #     secret: ((..cf.uaa.tile_installer_client_credentials.password))
+        #     credential_path: "/c/test-uaa-client-crud/*"
+        #     permissions: "read,write,delete,read_acl,write_acl"
+    
+    - name: uaa_crud_delete
+      templates:
+        - name: uaa_delete
+          release: uaa_crud
+          consumes:
+            credhub:
+              from: credhub
+              deployment: (( ..cf.deployment_name ))
+      lifecycle: errand
+      pre_delete: true
+      memory: 1024
+      instances: 1
+      cpu: 2
+      static_ip: 0
+      dynamic_ip: 1
+      default_internet_connected: false
+      max_in_flight: 1
+      properties:
+        uaacrud:
+          endpoint: https://uaa.(( ..cf.cloud_controller.system_domain.value ))
+          admin_identity: (( ..cf.uaa.tile_installer_client_credentials.identity ))
+          admin_secret: (( ..cf.uaa.tile_installer_client_credentials.password ))
+          target_client_identity: uaa-client-identity
+          target_client_secret: ((.properties.uaa_client_secret.value))
+        # credhub:
+        #   identity: ((..cf.uaa.tile_installer_client_credentials.identity))
+        #   secret: ((..cf.uaa.tile_installer_client_credentials.password))
+        #   credential_path: "/c/test-uaa-client-crud/*"
+        #   delete_credential_path: true
