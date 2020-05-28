@@ -4,7 +4,7 @@ This sample-tile directory demonstrates the use of uaa-client-crud
 in the context of a (Tanzu Ops Manager)[https://docs.pivotal.io/platform/2-9/installing/pcf-docs.html] tile. 
 
 ## Prerequisites
-(Tile Generator)[https://docs.pivotal.io/tiledev/2-6/tile-generator.html] is used
+[Tile Generator](https://docs.pivotal.io/tiledev/2-6/tile-generator.html) is used
 to build the tile artifacts. 
 
 ## Building the tile
@@ -51,6 +51,6 @@ make build
 ## Notes on scope and authorities
 In this example, we've given the UAA client credhub scopes and authorities. 
 
-(This document)[https://docs.cloudfoundry.org/concepts/architecture/uaa.html#scopes] is helpful 
+[This document](https://docs.cloudfoundry.org/concepts/architecture/uaa.html#scopes) is helpful 
 when determining what scopes/authorities to provide for other purposes. For example, 
 cloud_controller.admin_read_only, is good for reading the cloud controller api. 
